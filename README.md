@@ -1,6 +1,6 @@
 # Azure Kubernetes Service (AKS)
 
-This repository is for the purpose of understanding how to deploy a Kubernetes Cluster with Terraform.
+This repository is built for the purpose of understanding how to deploy a Kubernetes Clusters with Terraform.
 
 __Clone the Github repository__
 
