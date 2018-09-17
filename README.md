@@ -16,21 +16,20 @@ __Prerequisites__
 
 * HashiCorp [Terraform](https://terraform.io/downloads.html) installed.
 
-  _For Linux_
-  ```bash
-  export VER="0.11.8"
-  wget https://releases.hashicorp.com/terraform/${VER}/terraform_${VER}_linux_amd64.zip
-  unzip terraform_${VER}_linux_amd64.zip
-  sudo mv terraform /usr/local/bin/
-  ```
+```bash
+export VER="0.11.8"
+wget https://releases.hashicorp.com/terraform/${VER}/terraform_${VER}_linux_amd64.zip
+unzip terraform_${VER}_linux_amd64.zip
+sudo mv terraform /usr/local/bin/
+```
 
 __Setup Terraform Environment Variables__
 
 Generate Azure client id and secret.
 
-> Note: After creating a Service Principal you __MUST__ add API access for _Windows Azure Active Directory_ and enable the following permissions
+> After creating a Service Principal you __MUST__ add API access for _Windows Azure Active Directory_ and enable the following permissions
 > - Read and write all applications
-> - Sing in and read user profile
+> - Sign in and read user profile
 
 ```bash
 # Create a Service Principal
@@ -49,13 +48,13 @@ az ad sp create-for-rbac --name "Terraform-Principal" --role="Contributor" --sco
 }
 ```
 
-`appId` -> Client id.
-`password` -> Client secret.
+`appId` -> Client id.  
+`password` -> Client secret.  
 `tenant` -> Tenant id.
 
 Export environment variables to configure the [Azure](https://www.terraform.io/docs/providers/azurerm/index.html) Terraform provider.
 
->Note: A great tool to do this automatically with is [direnv](https://direnv.net/).
+>A great tool to do this automatically with is [direnv](https://direnv.net/).
 
 ```bash
 export ARM_SUBSCRIPTION_ID="YOUR_SUBSCRIPTION_ID"
@@ -69,7 +68,7 @@ export TF_VAR_client_secret=${ARM_CLIENT_SECRET}
 
 ## Deploy using Terraform
 
-Run Terraform init and plan.
+__Run Terraform init and plan.__
 
 ```bash
 # Run the following terraform commands.
@@ -80,9 +79,7 @@ $ terraform apply
 ```
 
 
-
-
-## Detailed Breakdown Instructions
+## Detailed Component Breakdown
 
 ### Create a Resource Group
 This resource group will be used to hold all our resources
