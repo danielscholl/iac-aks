@@ -345,7 +345,72 @@ az role assignment create `
 
 __*Terraform Resource Sample*__
 ```
+provider "azurerm" {
+  version = "=1.10.0"
+}
 
+variable "prefix" {
+  type        = "string"
+  description = "Unique Prefix."
+}
+
+variable "sp_least_privilidge" {
+  description = "K8s Service Principle Limited Role Feature"
+  default     = false
+}
+
+locals {
+  vnet_name       = "${local.rg}-vnet"
+  address_space   = "10.0.0.0/16"
+  subnet1_name    = "containerTier"
+  subnet1_address = "10.0.0.0/20"
+  subnet2_name    = "backendTier"
+  subnet2_address = "10.0.16.0/24"
+}
+
+resource "azurerm_virtual_network" "vnet" {
+
+  name                = "${local.vnet_name}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.rg.location}"
+  address_space       = [
+    "${local.address_space}"
+  ]
+  dns_servers         = []
+
+   tags = {
+    environment = "dev"
+    costcenter  = "it"
+  }
+}
+
+resource "azurerm_subnet" "subnet1" {
+
+  name                      = "${local.subnet1_name}"
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
+  address_prefix            = "${local.subnet1_address}"
+}
+
+resource "azurerm_subnet" "subnet2" {
+
+  name                      = "${local.subnet2_name}"
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
+  address_prefix            = "${local.subnet2_address}"
+}
+
+resource "azurerm_role_assignment" "aks_network" {
+
+  count                = "${var.sp_least_privilidge}"
+  scope                = "${azurerm_subnet.subnet1.id}"
+  role_definition_name = "aks_sp_role}"
+  principal_id         = "${azurerm_azuread_service_principal.ad_sp.id}"
+
+  depends_on = [
+    "azurerm_role_definition.aks_sp_role_rg",
+  ]
+}
 ```
 
 
