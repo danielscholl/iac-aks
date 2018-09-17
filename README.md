@@ -507,11 +507,16 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vm_size         = "${var.vm_size}"
     os_type         = "Linux"
     os_disk_size_gb = 30
+    vnet_subnet_id = "${azurerm_subnet.subnet1.id}"
   }
 
   service_principal {
     client_id     = "${azurerm_azuread_service_principal.ad_sp.application_id}"
     client_secret = "${random_string.ad_sp_password.result}"
+  }
+
+  network_profile {
+    network_plugin = "azure"
   }
 
   tags = {
@@ -529,7 +534,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
 
 
-## Build and push an application to the Container Registry
+## Build and push application images to the Container Registry
 Build the docker images and push it to the private registry and deploy a k8s manifest.
 
 ```bash
