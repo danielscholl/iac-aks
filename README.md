@@ -1,11 +1,11 @@
 # Azure Kubernetes Service (AKS)
 
-This repository is for the purpose of understanding different methods for creating an Azure AKS Cluster.
+This repository is for the purpose of understanding how to deploy a Kubernetes Cluster with Terraform.
 
 __Clone the Github repository__
 
 ```bash
-git clone https://github.com/danielscholl/azure-aks.git
+git clone https://github.com/danielscholl/azure-terraform-aks.git
 ```
 
 __Prerequisites__
@@ -13,11 +13,6 @@ __Prerequisites__
 * [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) installed.
 
   >Note: Assumes CLI Version = azure-cli (2.0.43)  ** Required for RBAC changes
-
-* [Powershell](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-powershell?view=powershell-6) installed.
-
-  >Note: Manual Instructions are written using Powershell format.  If working on Linux or mac just use pwsh.
-
 
 * HashiCorp [Terraform](https://terraform.io/downloads.html) installed.
 
