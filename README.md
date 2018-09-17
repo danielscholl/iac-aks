@@ -360,6 +360,7 @@ variable "sp_least_privilidge" {
 }
 
 locals {
+  rg              = "${var.prefix}-cluster"
   vnet_name       = "${local.rg}-vnet"
   address_space   = "10.0.0.0/16"
   subnet1_name    = "containerTier"
