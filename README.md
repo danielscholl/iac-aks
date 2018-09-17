@@ -84,7 +84,7 @@ $ terraform apply
 ### Create a Resource Group
 This resource group will be used to hold all our resources
 
-__*Manual CLI Commands*__
+__*CLI Commands*__
 ```bash
 Prefix="my"
 ResourceGroup="$Prefix-cluster"
@@ -100,7 +100,7 @@ Unique=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^
 ```
 
 
-__*Terraform Resource Sample*__
+__*Terraform Resources*__
 ```
 provider "azurerm" {
   version = "=1.10.0"
@@ -128,14 +128,11 @@ resource "azurerm_resource_group" "rg" {
 ```
 
 
-
-
-
 ### Create a Service Principal
 
 The Service Principal is used by the cluster to control access to Azure Resources such as registry and Network.
 
-__*Manual CLI Commands*__
+__*CLI Commands*__
 ```bash
 PrincipalName="$Prefix-Principal"
 
@@ -150,7 +147,7 @@ PrincipalId=$(az ad sp list \
 ```
 
 
-__*Terraform Resource Sample*__
+__*Terraform Resources*__
 ```
 provider "azurerm" {
   version = "=1.10.0"
@@ -187,8 +184,6 @@ resource "azurerm_azuread_service_principal_password" "ad_sp_password" {
   value                = "${random_string.ad_sp_password.result}"
   end_date             = "${timeadd(timestamp(), "8760h")}"
 
-  # This stops be 'end_date' changing on each run and causing a new password to be set
-  # to get the date to change here you would have to manually taint this resource...
   lifecycle {
     ignore_changes = ["end_date"]
   }
@@ -202,7 +197,7 @@ resource "azurerm_azuread_service_principal_password" "ad_sp_password" {
 
 The private Container Registry hosts images to be used by the cluster.
 
-__*Manual CLI Commands*__
+__*CLI Commands*__
 ```bash
 Registry="${Prefix}registry${Unique}"
 
@@ -230,7 +225,7 @@ az acr login \
   --name $Registry
 ```
 
-__*Terraform Resource Sample*__
+__*Terraform Resources*__
 ```
 provider "azurerm" {
   version = "=1.10.0"
@@ -266,7 +261,6 @@ resource "azurerm_container_registry" "aks" {
 }
 
 resource "azurerm_role_assignment" "aks_registry" {
-
   count                = "${var.sp_least_privilidge}"
   scope                = "${azurerm_container_registry.aks.primary.id}"
   role_definition_name = "aks_sp_role}"
@@ -284,7 +278,7 @@ resource "azurerm_role_assignment" "aks_registry" {
 
 The virtual network to be used by the Cluster for Advanced Networking.
 
-__*Manual CLI Commands*__
+__*CLI Commands*__
 ```bash
 #
 # - Azure VNET can be as large as /8 but a cluster may only have 16,000 configured IP addresses
@@ -340,7 +334,7 @@ az role assignment create \
 ```
 
 
-__*Terraform Resource Sample*__
+__*Terraform Resources*__
 ```
 provider "azurerm" {
   version = "=1.10.0"
@@ -367,7 +361,6 @@ locals {
 }
 
 resource "azurerm_virtual_network" "vnet" {
-
   name                = "${local.vnet_name}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${azurerm_resource_group.rg.location}"
@@ -383,7 +376,6 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "subnet1" {
-
   name                      = "${local.subnet1_name}"
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
@@ -391,7 +383,6 @@ resource "azurerm_subnet" "subnet1" {
 }
 
 resource "azurerm_subnet" "subnet2" {
-
   name                      = "${local.subnet2_name}"
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
@@ -399,7 +390,6 @@ resource "azurerm_subnet" "subnet2" {
 }
 
 resource "azurerm_role_assignment" "aks_network" {
-
   count                = "${var.sp_least_privilidge}"
   scope                = "${azurerm_subnet.subnet1.id}"
   role_definition_name = "aks_sp_role}"
@@ -416,7 +406,7 @@ resource "azurerm_role_assignment" "aks_network" {
 
 The managed kubernetes cluster to be created.
 
-__*Manual CLI Commands*__
+__*CLI Commands*__
 ```bash
 NodeSize="Standard_D3_v2"
 Cluster="aks-${Unique}"
@@ -452,7 +442,7 @@ kubectl get pods --all-namespaces
 ```
 
 
-__*Terraform Resource Sample*__
+__*Terraform Resources*__
 ```
 provider "azurerm" {
   version = "=1.10.0"
@@ -530,8 +520,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
 
 
-
-## Build and push application images to the Container Registry
+## Build and deploy application images to the Container Registry
 Build the docker images and push it to the private registry and deploy a k8s manifest.
 
 ```bash
@@ -561,7 +550,7 @@ EOF
 docker-compose build
 docker-compose push
 
-# Create a k8s manifest file for the Ap;p
+# Create a k8s manifest file for the App
 cat > deployment.yaml <<EOF
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -636,10 +625,9 @@ EOF
 
 ## Deploy application to the cluster
 
-__*Manual CLI Commands*__
+Deploy the Manifest to the cluster.
+
 ```bash
 kubectl apply -f deployment.yaml
 kubectl get service azure-vote-front --watch  # Wait for the External IP to come live
 ```
-
-
