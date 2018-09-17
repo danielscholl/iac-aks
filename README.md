@@ -422,7 +422,7 @@ The managed kubernetes cluster to be created.
 __*Manual CLI Commands*__
 ```bash
 NodeSize="Standard_D3_v2"
-Cluster="k8s-cluster-network"
+Cluster="aks-${Unique}"
 DockerBridgeCidr="172.17.0.1/16"
 ServiceCidr="10.3.0.0/24"
 DNSServiceIP="10.3.0.10"
