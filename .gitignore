@@ -1,6 +1,8 @@
 
-# SSH Keys
+# Project Specific Files
 .ssh
+docker-compose.yaml
+deployment.yaml
 
 # Terraform Files
 terraform.tfstate*

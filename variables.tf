@@ -1,7 +1,7 @@
 variable "prefix" {
   type        = "string"
   description = "Unique Prefix."
-  "default" = "dks"
+  "default" = "demo"
 }
 
 variable "location" {
@@ -28,7 +28,7 @@ variable "vm_size" {
 
 variable "node_count" {
   description = "The number of agents nodes to provision in the cluster"
-  default     = "3"
+  default     = "1"
 }
 
 variable "linux_admin_username" {
@@ -40,5 +40,4 @@ variable "linux_admin_username" {
 variable "owner_initials" {
   type        = "string"
   description = "Resource Owner Initials."
-  default     = "dks"
 }

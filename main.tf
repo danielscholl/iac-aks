@@ -337,11 +337,19 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vm_size         = "${var.vm_size}"
     os_type         = "Linux"
     os_disk_size_gb = 30
+
+    # Required for advanced networking
+    vnet_subnet_id = "${azurerm_subnet.subnet1.id}"
   }
 
   service_principal {
     client_id     = "${azurerm_azuread_service_principal.ad_sp.application_id}"
     client_secret = "${random_string.ad_sp_password.result}"
+  }
+
+  # Required for advanced networking
+  network_profile {
+    network_plugin = "azure"
   }
 
   tags = {
@@ -350,6 +358,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   depends_on = [
+    "azurerm_azuread_service_principal.ad_sp",
     "azurerm_role_assignment.aks_network",
   ]
 }

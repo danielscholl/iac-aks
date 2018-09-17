@@ -457,5 +457,187 @@ kubectl get pods --all-namespaces
 
 __*Terraform Resource Sample*__
 ```
+provider "azurerm" {
+  version = "=1.10.0"
+}
 
+variable "kubetnetes_version" {
+  type        = "string"
+  description = "The k8s version to deploy eg: '1.8.5', '1.10.5' etc"
+  default     = "1.10.5"
+}
+
+variable "vm_size" {
+  description = "The VM_SKU to use for the agents in the cluster"
+  default     = "Standard_DS2_v2"
+}
+
+variable "node_count" {
+  description = "The number of agents nodes to provision in the cluster"
+  default     = "3"
+}
+
+variable "linux_admin_username" {
+  type        = "string"
+  description = "User name for authentication to the Kubernetes linux agent virtual machines in the cluster."
+  default     = "terraform"
+}
+
+locals {
+  cluster_name = "aks-${local.unique}"
+}
+
+resource "azurerm_kubernetes_cluster" "aks" {
+  name                = "${local.cluster_name}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.rg.location}"
+  dns_prefix          = "${local.cluster_name}"
+
+  linux_profile {
+    admin_username = "${var.linux_admin_username}"
+
+    ssh_key {
+      key_data = "${trimspace(tls_private_key.key.public_key_openssh)} ${var.linux_admin_username}@azure.com"
+    }
+  }
+
+  agent_pool_profile {
+    name            = "agentpool"
+    count           = "${var.node_count}"
+    vm_size         = "${var.vm_size}"
+    os_type         = "Linux"
+    os_disk_size_gb = 30
+  }
+
+  service_principal {
+    client_id     = "${azurerm_azuread_service_principal.ad_sp.application_id}"
+    client_secret = "${random_string.ad_sp_password.result}"
+  }
+
+  tags = {
+    environment = "dev"
+    contact  = "${var.owner_initials}"
+  }
+
+  depends_on = [
+    "azurerm_azuread_service_principal.ad_sp",
+    "azurerm_role_assignment.aks_network",
+  ]
+}
 ```
+
+
+
+
+## Build and push an application to the Container Registry
+Build the docker images and push it to the private registry and deploy a k8s manifest.
+
+```bash
+# Create a Compose File for the App
+cat > docker-compose.yaml <<EOF
+version: '3'
+services:
+
+  azure-vote-back:
+    image: redis
+    container_name: azure-vote-back
+    ports:
+        - "6379:6379"
+
+  azure-vote-front:
+    build: ./src/azure-vote
+    image: $RegistryServer/azure-vote-front
+    container_name: azure-vote-front
+    environment:
+      REDIS: azure-vote-back
+    ports:
+        - "8080:80"
+EOF
+
+
+# Build and push the Docker Images
+docker-compose build
+docker-compose push
+
+# Create a k8s manifest file for the Ap;p
+cat > deployment.yaml <<EOF
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: azure-vote-back
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: azure-vote-back
+    spec:
+      containers:
+      - name: azure-vote-back
+        image: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: azure-vote-back
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: azure-vote-back
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: azure-vote-front
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: azure-vote-front
+    spec:
+      containers:
+      - name: azure-vote-front
+        image: $RegistryServer/azure-vote-front
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 250m
+          limits:
+            cpu: 500m
+        env:
+        - name: REDIS
+          value: "azure-vote-back"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: azure-vote-front
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+  selector:
+    app: azure-vote-front
+EOF
+```
+
+## Deploy application to the cluster
+
+__*Manual CLI Commands*__
+```bash
+kubectl apply -f deployment.yaml
+kubectl get service azure-vote-front --watch  # Wait for the External IP to come live
+```
+
+
