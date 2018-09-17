@@ -65,9 +65,6 @@ export TF_VAR_client_id=${ARM_CLIENT_ID}
 export TF_VAR_client_secret=${ARM_CLIENT_SECRET}
 ```
 
-
-## Deploy using Terraform
-
 __Run Terraform init and plan.__
 
 ```bash
