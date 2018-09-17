@@ -1,33 +1,14 @@
-# Azure Kubernetes Service (AKS)
 
-This repository is for the purpose of understanding different methods for creating an Azure AKS Cluster.
+# Instructions
 
-__Clone the Github repository__
-
-```bash
-git clone https://github.com/danielscholl/azure-aks.git
-```
-
-## Azure CLI
-
-__Prerequisites__
-
-* [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) installed.
-
-  >Note: Assumes CLI Version = azure-cli (2.0.43)  ** Required for RBAC changes
-
-* [Powershell](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-powershell?view=powershell-6) installed.
-
-  >Note: Instructions are written in Powershell format for non windows use pwsh.
-
-### Detailed Instructions
+>NOTE: Assumes CLI Version = azure-cli (2.0.43)  ** Required RBAC changes
 
 
-#### Create a Resource Group
-_This resource group will be used to hold all our resources_
+## Create a Resource Group
+This resource group will be used to hold all our resources
 
 ```powershell
-$ResourceGroup="aks"
+$ResourceGroup="k8s"
 $Location="eastus"
 
 # Create a resource group.
@@ -47,9 +28,9 @@ $Unique=$(Get-UniqueString -id $(az group show `
                                   --query id -otsv))
 ```
 
-#### Create a Service Principal
 
-_The Service Principal is used by the cluster to control access to Azure Resources such as registry and Network._
+## Create a Service Principal
+This Service Principal is used by the cluster to control access to Azure Resources such as registry and Network.
 
 ```powershell
 $PrincipalName = "AKS-$Unique"
@@ -64,9 +45,9 @@ $PrincipalId = $(az ad sp list `
                   --query [].appId -otsv)
 ```
 
-#### Create a Container Registry
 
-_The private Container Registry hosts images to be used by the cluster._
+## Create a Container Registry
+This private Container Registry hosts images to be used by the cluster.
 
 ```powershell
 $Registry="registry$Unique"
@@ -95,9 +76,9 @@ az acr login `
   --name $Registry
 ```
 
-#### Containerize and push an application to the registry
 
-_Download an application, build the docker images, push it to the private registry then deploy a k8s manifest._
+## Containerize and push an application to the registry
+Download an application build the docker images and push it to the private registry and deploy a k8s manifest.
 
 ```powershell
 # Clone a Sample Application
@@ -201,15 +182,11 @@ spec:
 "@ | Out-file deployment.yaml
 ```
 
+## Create a Kubernetes Cluster
 
+### Option A -- __Create a Basic Kubernetes Cluster__
 
-
-### Create a Kubernetes Cluster
-
-
-#### Option A -- _Create a Basic Kubernetes Cluster_
-
-_This is a bare bones kubernetes cluster with an application deployed and has RBAC enabled by default._
+This is a bare bones kubernetes cluster with an application deployed and has RBAC enabled by default.
 
 
 >Note: A Basic Kubernetes Cluster has RBAC enabled by default.
@@ -274,23 +251,22 @@ $data = kubectl get secret $(kubectl get serviceaccount dashboard -o jsonpath="{
 [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($data)) | clip
 ```
 
+### Option B -- __Create a Kubernetes Cluster with RBAC AAD integration__
 
-
-#### Option B -- _Create a Kubernetes Cluster with RBAC AAD integration_
-
-_Create a .env.ps1 file with the following settings as defined in the Tutorial Document_
+Create a .env.ps1 file with the following settings as defined in the Tutorial Document
 
 [https://docs.microsoft.com/en-us/azure/aks/aad-integration](https://docs.microsoft.com/en-us/azure/aks/aad-integration)
 
 
->NOTE: Track the Open Issue:  [RBAC AAD access error](https://github.com/Azure/AKS/issues/478)
+>Important things to note:
 
 1. Follow the instructions "VERY" carefully.
 2. Ensure you select Grant Permissions on both the Server Principal and the Client Principal
 3. Only "Member" users will be supported and not "Guest" users
 
+Track the Open Issue:  [RBAC AAD access error](https://github.com/Azure/AKS/issues/478)
 
-_Create a private environment file_
+__Create a private environment file__
 
 ```powershell
 ## Sample Environment File  (.env.ps1)
@@ -300,7 +276,7 @@ $Env:AZURE_AKSAADClientId = ""         # Desired Service Princiapl Client Id
 $Env:AZURE_TENANT = ""                 # Desired Tenant Id
 ```
 
-_Deploy and validate the Kubernetes Cluster_
+__Deploy and validate the Kubernetes Cluster__
 
 ```powershell
 $Cluster="k8s-cluster-aad"
@@ -362,9 +338,9 @@ az aks browse `
 
 
 
-#### Option C -- _Create an Advanced Network Kubernetes Cluster_
+### Option C -- __Create an Advanced Network Kubernetes Cluster__
 
-_Create a Virtual Network_
+__Create a Virtual Network__
 
 ```powershell
 <#
@@ -420,7 +396,7 @@ az role assignment create `
   --role Contributor
 ```
 
-_Create the integrated Cluster_
+__Create the integrated Cluster__
 
 ```powershell
 $NodeSize="Standard_D3_v2"
@@ -528,107 +504,4 @@ kubectl apply -f deployment.yaml
 kubectl get service azure-vote-front --watch  # Wait for the External IP to come live
 
 az aks browse --resource-group $ResourceGroup --name $Cluster  # Open the dashboard
-```
-
-
-
-
-## Azure Terraform provider
-
-### Prerequisites
-
-* HashiCorp [Terraform](https://terraform.io/downloads.html) installed.
-
-### Tutorial
-
-Generate Azure client id and secret.
-
->Note: This is assumed performing with a bash shell.
-
-```bash
-# Create a Service Principal
-
-$ $Subscription=$(az account show --query id -otsv)
-$ az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/$Subscription"
-
-# Expected Result
-
-{
-  "appId": "00000000-0000-0000-0000-000000000000",
-  "displayName": "azure-cli-2017-06-05-10-41-15",
-  "name": "http://azure-cli-2017-06-05-10-41-15",
-  "password": "0000-0000-0000-0000-000000000000",
-  "tenant": "00000000-0000-0000-0000-000000000000"
-}
-```
-
-`appId` - Client id.
-`password` - Client secret.
-`tenant` - Tenant id.
-
-Export environment variables to configure the [Azure](https://www.terraform.io/docs/providers/azurerm/index.html) Terraform provider.
-
->Note: A great tool to do this automatically with is [direnv](https://direnv.net/).
-
-```bash
-export ARM_SUBSCRIPTION_ID="YOUR_SUBSCRIPTION_ID"
-export ARM_TENANT_ID="TENANT_ID"
-export ARM_CLIENT_ID="CLIENT_ID"
-export ARM_CLIENT_SECRET="CLIENT_SECRET"
-export TF_VAR_client_id=${ARM_CLIENT_ID}
-export TF_VAR_client_secret=${ARM_CLIENT_SECRET}
-```
-
-Run Terraform init and plan.
-
-```bash
-# Run the following terraform commands.
-
-$ terraform init
-$ terraform plan
-$ terraform apply
-```
-
-> *Creating an Azure AKS cluster can take up to 15 minutes.*
-
-Configure kubeconfig
-
-Instructions can be obtained by running the following command
-
-```bash
-$ terraform output configure
-
-# Run the following commands to configure kubernetes client:
-
-$ terraform output -module=aks_cluster kube_config > ~/.kube/aksconfig
-$ export KUBECONFIG=~/.kube/aksconfig
-
-# Test configuration using kubectl
-
-$ kubectl get nodes
-```
-
-Save kubernetes config file to `~/.kube/aksconfig`
-
-```bash
-terraform output kube_config > ~/.kube/aksconfig
-```
-
-Set `KUBECONFIG` environment variable to the kubernetes config file
-
-```bash
-export KUBECONFIG=~/.kube/aksconfig
-```
-
-Test configuration.
-
-```bash
-kubectl get nodes
-```
-
-```bash
-NAME                     STATUS    ROLES     AGE       VERSION
-aks-default-75135322-0   Ready     agent     23m       v1.9.6
-aks-default-75135322-1   Ready     agent     23m       v1.9.6
-aks-default-75135322-2   Ready     agent     23m       v1.9.6
 ```
