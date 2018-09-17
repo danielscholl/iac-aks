@@ -87,7 +87,7 @@ $ terraform apply
 ### Create a Resource Group
 This resource group will be used to hold all our resources
 
-_Manual CLI Commands_
+__*Manual CLI Commands*__
 ```bash
 Prefix="my"
 ResourceGroup="$Prefix-cluster"
@@ -103,8 +103,8 @@ Unique=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^
 ```
 
 
-_Terraform Resource Sample_
-```json
+__*Terraform Resource Sample*__
+```
 provider "azurerm" {
   version = "=1.10.0"
 }
@@ -134,11 +134,11 @@ resource "azurerm_resource_group" "rg" {
 
 
 
-#### Create a Service Principal
+### Create a Service Principal
 
 The Service Principal is used by the cluster to control access to Azure Resources such as registry and Network.
 
-_Manual CLI Commands_
+__*Manual CLI Commands*__
 ```bash
 PrincipalName="Terraform-Principal-$Prefix"
 
@@ -154,7 +154,7 @@ PrincipalId=$(az ad sp list \
 
 
 _Terraform Resource Sample_
-```json
+```
 provider "azurerm" {
   version = "=1.10.0"
 }
@@ -201,11 +201,11 @@ resource "azurerm_azuread_service_principal_password" "ad_sp_password" {
 
 
 
-#### Create a Container Registry
+### Create a Container Registry
 
 The private Container Registry hosts images to be used by the cluster.
 
-_Manual CLI Commands_
+__*Manual CLI Commands*__
 ```bash
 Registry="${Prefix}registry${Unique}"
 
@@ -233,7 +233,7 @@ az acr login `
   --name $Registry
 ```
 
-#### Containerize and push an application to the registry
+### Containerize and push an application to the registry
 
 _Download an application, build the docker images, push it to the private registry then deploy a k8s manifest._
 
