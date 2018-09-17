@@ -12,7 +12,7 @@ __Prerequisites__
 
 * [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) installed.
 
-  >Note: Assumes CLI Version = azure-cli (2.0.43)  ** Required for RBAC changes
+  >Assumes CLI Version = azure-cli (2.0.43)  ** Required for RBAC changes
 
 * HashiCorp [Terraform](https://terraform.io/downloads.html) installed.
 
