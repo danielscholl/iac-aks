@@ -16,12 +16,12 @@ __Prerequisites__
 
 * HashiCorp [Terraform](https://terraform.io/downloads.html) installed.
 
-```bash
-export VER="0.11.8"
-wget https://releases.hashicorp.com/terraform/${VER}/terraform_${VER}_linux_amd64.zip
-unzip terraform_${VER}_linux_amd64.zip
-sudo mv terraform /usr/local/bin/
-```
+  ```bash
+  export VER="0.11.8"
+  wget https://releases.hashicorp.com/terraform/${VER}/terraform_${VER}_linux_amd64.zip
+  unzip terraform_${VER}_linux_amd64.zip
+  sudo mv terraform /usr/local/bin/
+  ```
 
 __Setup Terraform Environment Variables__
 
