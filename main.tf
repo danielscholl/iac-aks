@@ -394,7 +394,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     os_disk_size_gb = 30
 
     # Required for advanced networking
-    vnet_subnet_id = "${azurerm_subnet.subnet1.id}"
+    # vnet_subnet_id = "${azurerm_subnet.subnet1.id}"
   }
 
   service_principal {
@@ -402,10 +402,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
     client_secret = "${random_string.ad_sp_password.result}"
   }
 
-  # Required for advanced networking
-  network_profile {
-    network_plugin = "azure"
-  }
+  ## THIS KEY IS NOT WORKING -- CHECK ON AZURE CLOUD SHELL
+  # network_profile {
+  #   network_plugin = "azure"
+  # }
 
   tags = {
     environment = "dev"
