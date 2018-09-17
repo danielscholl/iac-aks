@@ -2,6 +2,9 @@
 
 This repository is built for the purpose of understanding how to deploy a Kubernetes Clusters with Terraform.
 
+
+## Deploy the Infrastructure
+
 __Clone the Github repository__
 
 ```bash
