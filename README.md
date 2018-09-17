@@ -245,7 +245,7 @@ variable "prefix" {
 }
 
 variable "sp_least_privilidge" {
-  description = "[Alpha] This feature creates a limited role for use by the K8s Service principal which limits access to only those resources needed for k8s operation"
+  description = "K8s Service Principle Limited Role Feature"
   default     = false
 }
 
@@ -280,6 +280,78 @@ resource "azurerm_role_assignment" "aks_registry" {
   ]
 }
 ```
+
+
+
+### Create a Virtual Network
+
+The virtual network to be used by the Cluster for Advanced Networking.
+
+__*Manual CLI Commands*__
+```bash
+#
+# - Azure VNET can be as large as /8 but a cluster may only have 16,000 configured IP addresses
+# - Subnet must be large enough to accomodate the nodes, pods, and all k8s and Azure resources
+#  that might be provisioned in the cluster.  ie: Load Balancer(s)
+#
+#  (number of nodes) + (number of nodes * pods per node)
+#         (3)        +                (3*30)  = 93 IP Addresses
+#>
+
+# Create a virtual network with a Container subnet.
+VNet="$ResourceGroup-vnet"
+AddressPrefix="10.0.0.0/16"    # 65,536 Addresses
+ContainerTier="10.0.0.0/20"    # 4,096  Addresses
+
+az network vnet create \
+    --name $VNet \
+    --resource-group $ResourceGroup \
+    --location $Location \
+    --address-prefix $AddressPrefix \
+    --subnet-name ContainerTier \
+    --subnet-prefix $ContainerTier
+
+
+# Create a virtual network with a Backend subnet.
+BackendTier="10.0.16.0/24"      # 254 Addresses
+
+az network vnet subnet create \
+    --name BackendTier \
+    --address-prefix $BackendTier \
+    --resource-group $ResourceGroup \
+    --vnet-name $VNet
+
+#
+# - ServiceCidr must be smaller then /12 and not used by any network element nor connected to VNET
+# - DNSServiceIP used by kube-dns  typically .10 in the ServiceCIDR range.
+# - DockerBridgeCidr used as the docker bridge IP address on nodes.  Default is typically used.
+
+#  MAX PODS PER NODE for advanced networking is 30!!
+#
+
+# Allow Service Principal Owner Access to the Network
+$SubnetId=$(az network vnet subnet show `
+  --resource-group $ResourceGroup `
+  --vnet-name $VNet `
+  --name ContainerTier `
+  --query id -otsv)
+
+az role assignment create `
+  --assignee $PrincipalId `
+  --scope $SubnetId `
+  --role Contributor
+```
+
+
+__*Terraform Resource Sample*__
+```
+
+```
+
+
+
+
+
 
 
 

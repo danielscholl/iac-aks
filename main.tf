@@ -144,151 +144,162 @@ resource "azurerm_role_assignment" "aks_registry" {
 # #-------------------------------
 # # Network Security Groups
 # #-------------------------------
-# resource "azurerm_network_security_group" "nsg1" {
-#   name                = "${local.nsg1_name}"
-#   resource_group_name = "${azurerm_resource_group.rg.name}"
-#   location            = "${azurerm_resource_group.rg.location}"
+resource "azurerm_network_security_group" "nsg1" {
+  name                = "${local.nsg1_name}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.rg.location}"
 
-#   security_rule {
-#     name                       = "SSH"
-#     priority                   = 1001
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "22"
-#     source_address_prefix      = "VirtualNetwork"
-#     destination_address_prefix = "*"
-#     description                = "ssh-for-vm-management"
-#   }
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "*"
+    description                = "ssh-for-vm-management"
+  }
 
-#   tags = {
-#     environment = "dev"
-#     costcenter  = "it"
-#   }
+  tags = {
+    environment = "dev"
+    costcenter  = "it"
+  }
 
-#   depends_on = [
-#     "azurerm_resource_group.rg",
-#   ]
-# }
+  depends_on = [
+    "azurerm_resource_group.rg",
+  ]
+}
 
-# resource "azurerm_network_security_group" "nsg2" {
-#   name                = "${local.nsg2_name}"
-#   resource_group_name = "${azurerm_resource_group.rg.name}"
-#   location            = "${azurerm_resource_group.rg.location}"
+resource "azurerm_network_security_group" "nsg2" {
+  name                = "${local.nsg2_name}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.rg.location}"
 
-#   security_rule {
-#     name                       = "SSH"
-#     priority                   = 1001
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "22"
-#     source_address_prefix      = "*"
-#     destination_address_prefix = "*"
-#     description                = "ssh-for-vm-management"
-#   }
-
-
-#   security_rule {
-#     name                       = "RDP"
-#     priority                   = 1002
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "3389"
-#     source_address_prefix      = "*"
-#     destination_address_prefix = "*"
-#     description                = "rdp-for-vm-management"
-#   }
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+    description                = "ssh-for-vm-management"
+  }
 
 
-#   security_rule {
-#     name                       = "HTTP"
-#     priority                   = 1003
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "80"
-#     source_address_prefix      = "VirtualNetwork"
-#     destination_address_prefix = "*"
-#     description                = "http-access-for-vnet"
-#   }
+  security_rule {
+    name                       = "RDP"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+    description                = "rdp-for-vm-management"
+  }
 
 
-#   security_rule {
-#     name                       = "HTTPS"
-#     priority                   = 1004
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "443"
-#     source_address_prefix      = "VirtualNetwork"
-#     destination_address_prefix = "*"
-#     description                = "https-access-for-vnet"
-#   }
+  security_rule {
+    name                       = "HTTP"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "*"
+    description                = "http-access-for-vnet"
+  }
 
-#   tags = {
-#     environment = "dev"
-#     costcenter  = "it"
-#   }
 
-#   depends_on = [
-#     "azurerm_resource_group.rg",
-#   ]
-# }
+  security_rule {
+    name                       = "HTTPS"
+    priority                   = 1004
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "*"
+    description                = "https-access-for-vnet"
+  }
+
+  tags = {
+    environment = "dev"
+    costcenter  = "it"
+  }
+
+  depends_on = [
+    "azurerm_resource_group.rg",
+  ]
+}
 
 # #-------------------------------
 # # Virtual Network
 # #-------------------------------
-# resource "azurerm_virtual_network" "vnet" {
+resource "azurerm_virtual_network" "vnet" {
 
-#   name                = "${local.vnet_name}"
-#   resource_group_name = "${azurerm_resource_group.rg.name}"
-#   location            = "${azurerm_resource_group.rg.location}"
-#   address_space       = [
-#     "${local.address_space}"
-#   ]
-#   dns_servers         = []
+  name                = "${local.vnet_name}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.rg.location}"
+  address_space       = [
+    "${local.address_space}"
+  ]
+  dns_servers         = []
 
-#    tags = {
-#     environment = "dev"
-#     costcenter  = "it"
-#   }
-# }
+   tags = {
+    environment = "dev"
+    costcenter  = "it"
+  }
+}
 
-# resource "azurerm_subnet" "subnet1" {
+resource "azurerm_subnet" "subnet1" {
 
-#   name                      = "${local.subnet1_name}"
-#   resource_group_name       = "${azurerm_resource_group.rg.name}"
-#   virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
-#   address_prefix            = "${local.subnet1_address}"
-#   network_security_group_id = "${azurerm_network_security_group.nsg1.id}"
-
-
-#   depends_on = [
-#     "azurerm_network_security_group.nsg1",
-#   ]
-# }
-
-# resource "azurerm_subnet" "subnet2" {
-
-#   name                      = "${local.subnet2_name}"
-#   resource_group_name       = "${azurerm_resource_group.rg.name}"
-#   virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
-#   address_prefix            = "${local.subnet2_address}"
-#   network_security_group_id = "${azurerm_network_security_group.nsg2.id}"
+  name                      = "${local.subnet1_name}"
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
+  address_prefix            = "${local.subnet1_address}"
+  network_security_group_id = "${azurerm_network_security_group.nsg1.id}"
 
 
-#   depends_on = [
-#     "azurerm_network_security_group.nsg2",
-#   ]
-# }
+  depends_on = [
+    "azurerm_network_security_group.nsg1",
+  ]
+}
 
+resource "azurerm_subnet" "subnet2" {
+
+  name                      = "${local.subnet2_name}"
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
+  address_prefix            = "${local.subnet2_address}"
+  network_security_group_id = "${azurerm_network_security_group.nsg2.id}"
+
+
+  depends_on = [
+    "azurerm_network_security_group.nsg2",
+  ]
+}
+
+resource "azurerm_role_assignment" "aks_network" {
+
+  count                = "${var.sp_least_privilidge}"
+  scope                = "${azurerm_subnet.subnet1.id}"
+  role_definition_name = "aks_sp_role}"
+  principal_id         = "${azurerm_azuread_service_principal.ad_sp.id}"
+
+  depends_on = [
+    "azurerm_role_definition.aks_sp_role_rg",
+  ]
+}
 
 
 
