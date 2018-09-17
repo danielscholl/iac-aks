@@ -1,11 +1,3 @@
-
-# SSH Keys
-.ssh
-
-# Terraform Files
-terraform.tfstate*
-.terraform
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -89,8 +81,6 @@ celerybeat-schedule
 
 # dotenv
 .env
-.envrc
-.env.sh
 
 # virtualenv
 .venv
@@ -109,4 +99,3 @@ ENV/
 
 # mypy
 .mypy_cache/
-

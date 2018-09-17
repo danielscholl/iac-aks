@@ -15,7 +15,6 @@ locals {
   unique          = "${random_integer.unique.result}"
   rg              = "${var.prefix}-cluster"
   sp_name         = "${var.prefix}-Principal"
-  storage_name    = "${var.prefix}storage${local.unique}"
   registry_name   = "${var.prefix}registry${local.unique}"
   vnet_name       = "${local.rg}-vnet"
   address_space   = "10.0.0.0/16"
@@ -25,7 +24,7 @@ locals {
   subnet2_address = "10.0.16.0/24"
   nsg1_name       = "${local.vnet_name}-${local.subnet1_name}-nsg"
   nsg2_name       = "${local.vnet_name}-${local.subnet2_name}-nsg"
-  
+  cluster_name = "aks-${local.unique}"
 }
 
 resource "random_integer" "unique" {
@@ -40,8 +39,12 @@ resource "random_integer" "unique" {
 resource "azurerm_resource_group" "rg" {
   name     = "${local.rg}"
   location = "${var.location}"
-}
 
+  tags = {
+    environment = "dev"
+    contact  = "${var.owner_initials}"
+  }
+}
 
 
 #-------------------------------
@@ -50,11 +53,9 @@ resource "azurerm_resource_group" "rg" {
 resource "azurerm_azuread_application" "ad_app" {
   name = "${local.sp_name}"
 }
-
 resource "azurerm_azuread_service_principal" "ad_sp" {
   application_id = "${azurerm_azuread_application.ad_app.application_id}"
 }
-
 resource "random_string" "ad_sp_password" {
   length  = 16
   special = true
@@ -63,7 +64,6 @@ resource "random_string" "ad_sp_password" {
     service_principal = "${azurerm_azuread_service_principal.ad_sp.id}"
   }
 }
-
 resource "azurerm_azuread_service_principal_password" "ad_sp_password" {
   service_principal_id = "${azurerm_azuread_service_principal.ad_sp.id}"
   value                = "${random_string.ad_sp_password.result}"
@@ -75,9 +75,7 @@ resource "azurerm_azuread_service_principal_password" "ad_sp_password" {
     ignore_changes = ["end_date"]
   }
 }
-
 data "azurerm_subscription" "sub" {}  # Retrieve Azure Subscription
-
 resource "azurerm_role_definition" "aks_sp_role_rg" {
   count       = "${var.sp_least_privilidge}"
   name        = "aks_sp_role"
@@ -115,19 +113,21 @@ resource "azurerm_role_definition" "aks_sp_role_rg" {
 }
 
 
-
 #-------------------------------
 # Cluster Container Registry
 #-------------------------------
-
 resource "azurerm_container_registry" "aks" {
   name                = "${local.registry_name}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${azurerm_resource_group.rg.location}"
   admin_enabled       = true
   sku                 = "Basic"
-}
 
+  tags = {
+    environment = "dev"
+    contact  = "${var.owner_initials}"
+  }
+}
 resource "azurerm_role_assignment" "aks_registry" {
 
   count                = "${var.sp_least_privilidge}"
@@ -141,9 +141,9 @@ resource "azurerm_role_assignment" "aks_registry" {
 }
 
 
-# #-------------------------------
-# # Network Security Groups
-# #-------------------------------
+#-------------------------------
+# Network Security Groups
+#-------------------------------
 resource "azurerm_network_security_group" "nsg1" {
   name                = "${local.nsg1_name}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
@@ -164,7 +164,7 @@ resource "azurerm_network_security_group" "nsg1" {
 
   tags = {
     environment = "dev"
-    costcenter  = "it"
+    contact  = "${var.owner_initials}"
   }
 
   depends_on = [
@@ -190,7 +190,6 @@ resource "azurerm_network_security_group" "nsg2" {
     description                = "ssh-for-vm-management"
   }
 
-
   security_rule {
     name                       = "RDP"
     priority                   = 1002
@@ -204,7 +203,6 @@ resource "azurerm_network_security_group" "nsg2" {
     description                = "rdp-for-vm-management"
   }
 
-
   security_rule {
     name                       = "HTTP"
     priority                   = 1003
@@ -217,7 +215,6 @@ resource "azurerm_network_security_group" "nsg2" {
     destination_address_prefix = "*"
     description                = "http-access-for-vnet"
   }
-
 
   security_rule {
     name                       = "HTTPS"
@@ -234,7 +231,7 @@ resource "azurerm_network_security_group" "nsg2" {
 
   tags = {
     environment = "dev"
-    costcenter  = "it"
+    contact  = "${var.owner_initials}"
   }
 
   depends_on = [
@@ -242,11 +239,12 @@ resource "azurerm_network_security_group" "nsg2" {
   ]
 }
 
-# #-------------------------------
-# # Virtual Network
-# #-------------------------------
-resource "azurerm_virtual_network" "vnet" {
 
+
+#-------------------------------
+# Virtual Network
+#-------------------------------
+resource "azurerm_virtual_network" "vnet" {
   name                = "${local.vnet_name}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${azurerm_resource_group.rg.location}"
@@ -255,12 +253,11 @@ resource "azurerm_virtual_network" "vnet" {
   ]
   dns_servers         = []
 
-   tags = {
+  tags = {
     environment = "dev"
-    costcenter  = "it"
+    tsp  = "dks"
   }
 }
-
 resource "azurerm_subnet" "subnet1" {
 
   name                      = "${local.subnet1_name}"
@@ -269,28 +266,22 @@ resource "azurerm_subnet" "subnet1" {
   address_prefix            = "${local.subnet1_address}"
   network_security_group_id = "${azurerm_network_security_group.nsg1.id}"
 
-
   depends_on = [
     "azurerm_network_security_group.nsg1",
   ]
 }
-
 resource "azurerm_subnet" "subnet2" {
-
   name                      = "${local.subnet2_name}"
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
   address_prefix            = "${local.subnet2_address}"
   network_security_group_id = "${azurerm_network_security_group.nsg2.id}"
 
-
   depends_on = [
     "azurerm_network_security_group.nsg2",
   ]
 }
-
 resource "azurerm_role_assignment" "aks_network" {
-
   count                = "${var.sp_least_privilidge}"
   scope                = "${azurerm_subnet.subnet1.id}"
   role_definition_name = "aks_sp_role}"
@@ -302,80 +293,79 @@ resource "azurerm_role_assignment" "aks_network" {
 }
 
 
+# #-------------------------------
+# # SSH Keys
+# #-------------------------------
+resource "tls_private_key" "key" {
+  algorithm = "RSA"
+}
+resource "null_resource" "save-key" {
+  triggers {
+    key = "${tls_private_key.key.private_key_pem}"
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+      mkdir -p ${path.module}/.ssh
+      echo "${tls_private_key.key.private_key_pem}" > ${path.module}/.ssh/id_rsa
+      chmod 0600 ${path.module}/.ssh/id_rsa
+EOF
+  }
+}
 
 
-# resource "azurerm_role_assignment" "aks_service_principal_role_subnet" {
-#   # az role assignment create
+# #-------------------------------
+# # AKS Cluster
+# #-------------------------------
+resource "azurerm_kubernetes_cluster" "aks" {
+  name                = "${local.cluster_name}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.rg.location}"
+  dns_prefix          = "${local.cluster_name}"
 
-#   count                = "${var.sp_least_privilidge}"
-#   scope                = "${module.virtual_network.subnet1_id}"
-#   role_definition_name = "${module.service_principal.aks_role_name}"
-#   principal_id         = "${module.service_principal.sp_id}"
+  linux_profile {
+    admin_username = "${var.linux_admin_username}"
 
-#   depends_on = [
-#     "module.service_principal",
-#     "module.virtual_network",
-#   ]
-# }
+    ssh_key {
+      key_data = "${trimspace(tls_private_key.key.public_key_openssh)} ${var.linux_admin_username}@azure.com"
+    }
+  }
 
-#########################################################
-# MODULES
-#########################################################
+  agent_pool_profile {
+    name            = "agentpool"
+    count           = "${var.node_count}"
+    vm_size         = "${var.vm_size}"
+    os_type         = "Linux"
+    os_disk_size_gb = 30
+  }
+
+  service_principal {
+    client_id     = "${azurerm_azuread_service_principal.ad_sp.application_id}"
+    client_secret = "${random_string.ad_sp_password.result}"
+  }
+
+  tags = {
+    environment = "dev"
+    contact  = "${var.owner_initials}"
+  }
+
+  depends_on = [
+    "azurerm_role_assignment.aks_network",
+  ]
+}
 
 
-
-# module "virtual_network" {
-#   source              = "virtual_network"
-#   resource_group_name = "${data.azurerm_resource_group.passed.name}"
-#   location            = "${data.azurerm_resource_group.passed.location}"
-#   address_space       = "${local.address_prefix}"
-
-#   subnet_names = [
-#     "${local.subnet1_name}",
-#     "${local.subnet2_name}",
-#   ]
-
-#   subnet_prefixes = [
-#     "${local.subnet1_address}",
-#     "${local.subnet2_address}",
-#   ]
-
-#   nsg_ids = [
-#     "${module.subnet1_nsg.network_security_group_id}",
-#     "${module.subnet2_nsg.network_security_group_id}",
-#   ]
-
-#   tags = {
-#     environment = "dev"
-#     costcenter  = "sandbox"
-#   }
-# }
-
-# module "service_principal" {
-#   source = "service_principal"
-
-#   group               = "${azurerm_resource_group.aks_demo.name}"
-#   sp_least_privilidge = "${var.sp_least_privilidge}"
-# }
-
-# module "virtual_network" {
-#   source = "virtual_network"
-
-#   group = "${azurerm_resource_group.aks_demo.name}"
-# }
-
-# module "aks_cluster" {
-#   source = "aks_cluster"
-
-#   group         = "${azurerm_resource_group.aks_demo.name}"
-#   client_id     = "${module.service_principal.client_id}"
-#   client_secret = "${module.service_principal.client_secret}"
-# }
 
 #########################################################
 # OUTPUT
 #########################################################
 
+output "kube_config" {
+  value = "${azurerm_kubernetes_cluster.aks.kube_config_raw}"
+}
+output "host" {
+  value = "${azurerm_kubernetes_cluster.aks.kube_config.0.host}"
+}
 output "configure" {
   value = <<CONFIGURE
 
@@ -383,7 +373,7 @@ output "configure" {
 Run the following commands to configure kubernetes client:
 
 
-$ terraform output -module aks_cluster kube_config > ~/.kube/aksconfig
+$ terraform output kube_config > ~/.kube/aksconfig
 $ export KUBECONFIG=~/.kube/aksconfig
 
 
@@ -391,5 +381,6 @@ Test configuration using kubectl
 
 
 $ kubectl get nodes
+$ kubectl get pods --all-namespaces
 CONFIGURE
 }

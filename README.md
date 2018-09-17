@@ -229,7 +229,7 @@ az role assignment create \
   --role Reader
 
 # Login to the Registry
-az acr login `
+az acr login \
   --name $Registry
 ```
 
@@ -304,22 +304,22 @@ AddressPrefix="10.0.0.0/16"    # 65,536 Addresses
 ContainerTier="10.0.0.0/20"    # 4,096  Addresses
 
 az network vnet create \
-    --name $VNet \
-    --resource-group $ResourceGroup \
-    --location $Location \
-    --address-prefix $AddressPrefix \
-    --subnet-name ContainerTier \
-    --subnet-prefix $ContainerTier
+  --name $VNet \
+  --resource-group $ResourceGroup \
+  --location $Location \
+  --address-prefix $AddressPrefix \
+  --subnet-name ContainerTier \
+  --subnet-prefix $ContainerTier
 
 
 # Create a virtual network with a Backend subnet.
 BackendTier="10.0.16.0/24"      # 254 Addresses
 
 az network vnet subnet create \
-    --name BackendTier \
-    --address-prefix $BackendTier \
-    --resource-group $ResourceGroup \
-    --vnet-name $VNet
+  --name BackendTier \
+  --address-prefix $BackendTier \
+  --resource-group $ResourceGroup \
+  --vnet-name $VNet
 
 #
 # - ServiceCidr must be smaller then /12 and not used by any network element nor connected to VNET
@@ -330,15 +330,15 @@ az network vnet subnet create \
 #
 
 # Allow Service Principal Owner Access to the Network
-$SubnetId=$(az network vnet subnet show `
-  --resource-group $ResourceGroup `
-  --vnet-name $VNet `
-  --name ContainerTier `
+SubnetId=$(az network vnet subnet show \
+  --resource-group $ResourceGroup \
+  --vnet-name $VNet \
+  --name ContainerTier \
   --query id -otsv)
 
-az role assignment create `
-  --assignee $PrincipalId `
-  --scope $SubnetId `
+az role assignment create \
+  --assignee $PrincipalId \
+  --scope $SubnetId \
   --role Contributor
 ```
 
@@ -429,23 +429,33 @@ DNSServiceIP="10.3.0.10"
 
 # Create the Cluster
 az aks create --name $Cluster \
-    --resource-group $ResourceGroup \
-    --location $Location \
-    --generate-ssh-keys \
-    --node-vm-size $NodeSize \
-    --node-count 1 \
-    --service-principal $PrincipalId \
-    --client-secret $PrincipalSecret \
-    --disable-rbac \
-    --network-plugin azure \
-    --docker-bridge-address $DockerBridgeCidr \
-    --service-cidr $ServiceCidr \
-    --dns-service-ip $DNSServiceIP \
-    --vnet-subnet-id $SubnetId \
-    --enable-addons http_application_routing
+  --resource-group $ResourceGroup \
+  --location $Location \
+  --generate-ssh-keys \
+  --node-vm-size $NodeSize \
+  --node-count 1 \
+  --service-principal $PrincipalId \
+  --client-secret $PrincipalSecret \
+  --disable-rbac \
+  --network-plugin azure \
+  --docker-bridge-address $DockerBridgeCidr \
+  --service-cidr $ServiceCidr \
+  --dns-service-ip $DNSServiceIP \
+  --vnet-subnet-id $SubnetId \
+  --enable-addons http_application_routing
 
 # Pull the cluster admin context
-az aks get-credentials --resource-group $ResourceGroup --name $Cluster --admin
+az aks get-credentials --name $Cluster \
+  --resource-group $ResourceGroup \
+  --admin
+
+# Validate the cluster
+kubectl get nodes
+kubectl get pods --all-namespaces
 ```
 
 
+__*Terraform Resource Sample*__
+```
+
+```
