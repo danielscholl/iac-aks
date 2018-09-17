@@ -76,6 +76,11 @@ __Run Terraform init and plan.__
 $ terraform init
 $ terraform plan
 $ terraform apply
+$ terraform output kube_config > ~/.kube/aksconfig
+$ export KUBECONFIG=~/.kube/aksconfig
+
+$ kubectl get nodes
+$ kubectl get pods --all-namespaces
 ```
 
 

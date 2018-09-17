@@ -395,8 +395,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     os_type         = "Linux"
     os_disk_size_gb = 30
 
-    # Required for advanced networking
-    vnet_subnet_id = "${azurerm_subnet.subnet1.id}"
+    #vnet_subnet_id = "${azurerm_subnet.subnet1.id}"
   }
 
   service_principal {
@@ -404,16 +403,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
     client_secret = "${random_string.ad_sp_password.result}"
   }
 
-  network_profile {
-    network_plugin     = "azure"
-    dns_service_ip     = "${local.dns_ip}"
-    docker_bridge_cidr = "${local.docker_cidr}"
-    service_cidr       = "${local.address_space}"
-  }
-
-  ## THIS KEY IS NOT WORKING -- CHECK ON AZURE CLOUD SHELL
   # network_profile {
-  #   network_plugin = "azure"
+  #   network_plugin     = "azure"
+  #   dns_service_ip     = "${local.dns_ip}"
+  #   docker_bridge_cidr = "${local.docker_cidr}"
+  #   service_cidr       = "${local.address_space}"
   # }
 
   tags = {
