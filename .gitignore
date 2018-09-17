@@ -1,0 +1,5 @@
+.terraform
+.ssh
+env.sh
+.envrc
+terraform.tfstate*
