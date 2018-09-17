@@ -74,7 +74,9 @@ locals {
   subnet2_address = "10.0.16.0/24"
   nsg1_name       = "${local.vnet_name}-${local.subnet1_name}-nsg"
   nsg2_name       = "${local.vnet_name}-${local.subnet2_name}-nsg"
-  cluster_name = "aks-${local.unique}"
+  cluster_name    = "aks-${local.unique}"
+  dns_ip          = "10.0.0.10"
+  docker_cidr     = "172.17.0.1/16"
 }
 
 
@@ -394,12 +396,19 @@ resource "azurerm_kubernetes_cluster" "aks" {
     os_disk_size_gb = 30
 
     # Required for advanced networking
-    # vnet_subnet_id = "${azurerm_subnet.subnet1.id}"
+    vnet_subnet_id = "${azurerm_subnet.subnet1.id}"
   }
 
   service_principal {
     client_id     = "${azurerm_azuread_service_principal.ad_sp.application_id}"
     client_secret = "${random_string.ad_sp_password.result}"
+  }
+
+  network_profile {
+    network_plugin     = "azure"
+    dns_service_ip     = "${local.dns_ip}"
+    docker_bridge_cidr = "${local.docker_cidr}"
+    service_cidr       = "${local.address_space}"
   }
 
   ## THIS KEY IS NOT WORKING -- CHECK ON AZURE CLOUD SHELL

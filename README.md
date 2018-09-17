@@ -517,8 +517,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
 
 
-## Build and deploy application images to the Container Registry
+## Deploy a Sample Application to the Cluster
+
 Build the docker images and push it to the private registry and deploy a k8s manifest.
+
+__Build the application__
 
 ```bash
 # Create a Compose File for the App
@@ -620,9 +623,8 @@ spec:
 EOF
 ```
 
-## Deploy application to the cluster
 
-Deploy the Manifest to the cluster.
+__Deploy the Application__
 
 ```bash
 kubectl apply -f deployment.yaml
