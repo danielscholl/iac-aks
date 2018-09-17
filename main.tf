@@ -119,21 +119,25 @@ resource "azurerm_role_definition" "aks_sp_role_rg" {
 #-------------------------------
 # Cluster Container Registry
 #-------------------------------
-resource "azurerm_storage_account" "aks" {
-  name                     = "${local.storage_name}"
-  resource_group_name      = "${azurerm_resource_group.rg.name}"
-  location                 = "${azurerm_resource_group.rg.location}"
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
 
 resource "azurerm_container_registry" "aks" {
   name                = "${local.registry_name}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${azurerm_resource_group.rg.location}"
   admin_enabled       = true
-  sku                 = "Classic"
-  storage_account_id  = "${azurerm_storage_account.aks.id}"
+  sku                 = "Basic"
+}
+
+resource "azurerm_role_assignment" "aks_registry" {
+
+  count                = "${var.sp_least_privilidge}"
+  scope                = "${azurerm_container_registry.aks.primary.id}"
+  role_definition_name = "aks_sp_role}"
+  principal_id         = "${azurerm_azuread_service_principal.ad_sp.id}"
+
+  depends_on = [
+    "azurerm_role_definition.aks_sp_role_rg",
+  ]
 }
 
 

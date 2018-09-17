@@ -140,7 +140,7 @@ The Service Principal is used by the cluster to control access to Azure Resource
 
 __*Manual CLI Commands*__
 ```bash
-PrincipalName="Terraform-Principal-$Prefix"
+PrincipalName="$Prefix-Principal"
 
 PrincipalSecret=$(az ad sp create-for-rbac \
                   --name $PrincipalName \
@@ -153,7 +153,7 @@ PrincipalId=$(az ad sp list \
 ```
 
 
-_Terraform Resource Sample_
+__*Terraform Resource Sample*__
 ```
 provider "azurerm" {
   version = "=1.10.0"
@@ -232,6 +232,56 @@ az role assignment create \
 az acr login `
   --name $Registry
 ```
+
+__*Terraform Resource Sample*__
+```
+provider "azurerm" {
+  version = "=1.10.0"
+}
+
+variable "prefix" {
+  type        = "string"
+  description = "Unique Prefix."
+}
+
+variable "sp_least_privilidge" {
+  description = "[Alpha] This feature creates a limited role for use by the K8s Service principal which limits access to only those resources needed for k8s operation"
+  default     = false
+}
+
+locals {
+  unique          = "${random_integer.unique.result}"
+  registry_name   = "${var.prefix}registry${local.unique}"
+}
+
+resource "random_integer" "unique" {
+  # 3 Digit Random Number Generator
+  min = 100
+  max = 999
+}
+
+resource "azurerm_container_registry" "aks" {
+  name                = "${local.registry_name}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.rg.location}"
+  admin_enabled       = true
+  sku                 = "Basic"
+}
+
+resource "azurerm_role_assignment" "aks_registry" {
+
+  count                = "${var.sp_least_privilidge}"
+  scope                = "${azurerm_container_registry.aks.primary.id}"
+  role_definition_name = "aks_sp_role}"
+  principal_id         = "${azurerm_azuread_service_principal.ad_sp.id}"
+
+  depends_on = [
+    "azurerm_role_definition.aks_sp_role_rg",
+  ]
+}
+```
+
+
 
 ### Containerize and push an application to the registry
 
