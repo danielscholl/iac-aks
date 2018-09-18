@@ -235,7 +235,7 @@ az aks browse -n $Cluster -g $ResourceGroup
 
 
 
-## Detailed Component Breakdown
+## Detailed CLI vs Terraform Comparison
 
 ### Create a Resource Group
 This resource group will be used to hold all our resources
