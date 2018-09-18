@@ -91,30 +91,28 @@ kubectl get pods --all-namespaces
 
 ## Deploy a Sample Application to the Cluster
 
-Build the docker images and push it to the private registry and deploy a k8s manifest.
+Build the docker images, push it to the private registry and deploy a k8s manifest.
 
 
-__Build the application__
+__Build and deploy the sample application__
 
 > Follow this process to build using Azure. (ie: cloudshell)
 
 ```bash
-# Move to the directory where the source code exists
-cd src/azure-vote
-
-# Set the variable to your resource group where ACR exists.
 ResourceGroup="demo-cluster"
+deploy.sh $ResourceGroup
 
-# Retrieve the Registry Name
-Registry=$(az acr list -g $ResourceGroup --query [].name -otsv)
-
-# Build and push the Image
-az acr build --registry $Registry --image azure-vote-front .
+# Watch to see the app come alive
+kubectl get service azure-vote-front --watch
 ```
 
-__Build the application using Docker__
 
-> Follow this process to build using docker.
+## Manually Build and Deploy a Sample Application to the Cluster
+
+Manually using docker and compose build the images, push it to the private registry then deploy the k8s manifest.
+
+
+__Build the application__
 
 ```bash
 # Set the variable to your resource group where ACR exists.
@@ -232,12 +230,7 @@ spec:
   selector:
     app: azure-vote-front
 EOF
-```
 
-
-__Deploy the Application__
-
-```bash
 kubectl apply -f deployment.yaml
 kubectl get service azure-vote-front --watch  # Wait for the External IP to come live
 
@@ -249,9 +242,6 @@ Cluster=$(az aks list -g $ResourceGroup --query [].name -otsv)
 # Open the dashboard
 az aks browse -n $Cluster -g $ResourceGroup 
 ```
-
-
-
 
 
 ## Detailed CLI vs Terraform Comparison
