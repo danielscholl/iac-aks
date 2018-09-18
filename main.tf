@@ -16,11 +16,9 @@ provider "azurerm" {
 # VARIABLES
 #########################################################
 
-
-variable "prefix" {
+variable "owner_initials" {
   type        = "string"
-  description = "Unique Prefix."
-  "default" = "demo"
+  description = "Resource Owner Initials."
 }
 
 variable "location" {
@@ -56,16 +54,13 @@ variable "linux_admin_username" {
   default     = "terraform"
 }
 
-variable "owner_initials" {
-  type        = "string"
-  description = "Resource Owner Initials."
-}
+
 
 locals {
   unique          = "${random_integer.unique.result}"
-  rg              = "${var.prefix}-cluster"
-  sp_name         = "${var.prefix}-Principal"
-  registry_name   = "${var.prefix}registry${local.unique}"
+  rg              = "${var.owner_initials}-cluster"
+  sp_name         = "${var.owner_initials}-Principal"
+  registry_name   = "${var.owner_initials}registry${local.unique}"
   vnet_name       = "${local.rg}-vnet"
   address_space   = "10.0.0.0/16"
   subnet1_name    = "containerTier"
