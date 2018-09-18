@@ -186,10 +186,8 @@ resource "azurerm_container_registry" "aks" {
   }
 }
 resource "azurerm_role_assignment" "aks_registry" {
-
-  count                = "${var.sp_least_privilidge}"
-  scope                = "${azurerm_container_registry.aks.primary.id}"
-  role_definition_name = "aks_sp_role}"
+  scope                = "${azurerm_container_registry.aks.id}"
+  role_definition_name = "Reader"
   principal_id         = "${azurerm_azuread_service_principal.ad_sp.id}"
 
   depends_on = [
@@ -341,7 +339,7 @@ resource "azurerm_subnet" "subnet2" {
 resource "azurerm_role_assignment" "aks_network" {
   count                = "${var.sp_least_privilidge}"
   scope                = "${azurerm_subnet.subnet1.id}"
-  role_definition_name = "aks_sp_role}"
+  role_definition_name = "Contributor"
   principal_id         = "${azurerm_azuread_service_principal.ad_sp.id}"
 
   depends_on = [

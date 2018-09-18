@@ -73,15 +73,164 @@ __Run Terraform init and plan.__
 ```bash
 # Run the following terraform commands.
 
-$ terraform init
-$ terraform plan
-$ terraform apply
-$ terraform output kube_config > ~/.kube/aksconfig
-$ export KUBECONFIG=~/.kube/aksconfig
+terraform init
+terraform plan
+terraform apply
+terraform output kube_config > ~/.kube/aksconfig
+export KUBECONFIG=~/.kube/aksconfig
 
-$ kubectl get nodes
-$ kubectl get pods --all-namespaces
+kubectl get nodes
+kubectl get pods --all-namespaces
 ```
+
+
+
+## Deploy a Sample Application to the Cluster
+
+Build the docker images and push it to the private registry and deploy a k8s manifest.
+
+__Retrieve the registry__
+
+```bash
+# Set the variable to your resource group where ACR exists.
+RegistryGroup="demo-cluster"
+
+# Login to the Registry
+Registry=$(az acr list -g $RegistryGroup --query [].name -otsv)
+az acr login -g $RegistryGroup -n $Registry
+```
+
+__Build the application__
+
+```bash
+# Retrieve the Registry Server FQDN
+RegistryServer=$(az acr show -g $RegistryGroup -n $Registry --query loginServer -otsv)
+
+# Create a Compose File for the App
+cat > docker-compose.yaml <<EOF
+version: '3'
+services:
+
+  azure-vote-back:
+    image: redis
+    container_name: azure-vote-back
+    ports:
+        - "6379:6379"
+
+  azure-vote-front:
+    build: ./src/azure-vote
+    image: ${RegistryServer}/azure-vote-front
+    container_name: azure-vote-front
+    environment:
+      REDIS: azure-vote-back
+    ports:
+        - "8080:80"
+EOF
+
+
+# Build and push the Docker Images
+docker-compose build
+docker-compose push
+```
+
+
+__Deploy the application__
+
+```bash
+# Retrieve the Registry Server FQDN
+RegistryServer=$(az acr show -g $RegistryGroup -n $Registry --query loginServer -otsv)
+
+# Create a k8s manifest file for the App
+cat > deployment.yaml <<EOF
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: azure-vote-back
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: azure-vote-back
+    spec:
+      containers:
+      - name: azure-vote-back
+        image: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: azure-vote-back
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: azure-vote-back
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: azure-vote-front
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: azure-vote-front
+    spec:
+      containers:
+      - name: azure-vote-front
+        image: ${RegistryServer}/azure-vote-front
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 250m
+          limits:
+            cpu: 500m
+        env:
+        - name: REDIS
+          value: "azure-vote-back"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: azure-vote-front
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+  selector:
+    app: azure-vote-front
+EOF
+```
+
+
+__Deploy the Application__
+
+```bash
+kubectl apply -f deployment.yaml
+kubectl get service azure-vote-front --watch  # Wait for the External IP to come live
+
+
+# Set the variable to your resource group where ACR exists.
+ResourceGroup="demo-cluster"
+Cluster=$(az aks list -g $ResourceGroup --query [].name -otsv)
+
+# Open the dashboard
+az aks browse -n $Cluster -g $ResourceGroup 
+```
+
+
+
 
 
 ## Detailed Component Breakdown
@@ -525,116 +674,3 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
 
 
-## Deploy a Sample Application to the Cluster
-
-Build the docker images and push it to the private registry and deploy a k8s manifest.
-
-__Build the application__
-
-```bash
-# Create a Compose File for the App
-cat > docker-compose.yaml <<EOF
-version: '3'
-services:
-
-  azure-vote-back:
-    image: redis
-    container_name: azure-vote-back
-    ports:
-        - "6379:6379"
-
-  azure-vote-front:
-    build: ./src/azure-vote
-    image: $RegistryServer/azure-vote-front
-    container_name: azure-vote-front
-    environment:
-      REDIS: azure-vote-back
-    ports:
-        - "8080:80"
-EOF
-
-
-# Build and push the Docker Images
-docker-compose build
-docker-compose push
-
-# Create a k8s manifest file for the App
-cat > deployment.yaml <<EOF
-apiVersion: apps/v1beta1
-kind: Deployment
-metadata:
-  name: azure-vote-back
-spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: azure-vote-back
-    spec:
-      containers:
-      - name: azure-vote-back
-        image: redis
-        ports:
-        - containerPort: 6379
-          name: redis
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: azure-vote-back
-spec:
-  ports:
-  - port: 6379
-  selector:
-    app: azure-vote-back
----
-apiVersion: apps/v1beta1
-kind: Deployment
-metadata:
-  name: azure-vote-front
-spec:
-  replicas: 1
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-  minReadySeconds: 5
-  template:
-    metadata:
-      labels:
-        app: azure-vote-front
-    spec:
-      containers:
-      - name: azure-vote-front
-        image: $RegistryServer/azure-vote-front
-        ports:
-        - containerPort: 80
-        resources:
-          requests:
-            cpu: 250m
-          limits:
-            cpu: 500m
-        env:
-        - name: REDIS
-          value: "azure-vote-back"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: azure-vote-front
-spec:
-  type: LoadBalancer
-  ports:
-  - port: 80
-  selector:
-    app: azure-vote-front
-EOF
-```
-
-
-__Deploy the Application__
-
-```bash
-kubectl apply -f deployment.yaml
-kubectl get service azure-vote-front --watch  # Wait for the External IP to come live
-```
