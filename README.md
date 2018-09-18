@@ -93,21 +93,38 @@ kubectl get pods --all-namespaces
 
 Build the docker images and push it to the private registry and deploy a k8s manifest.
 
-__Retrieve the registry__
-
-```bash
-# Set the variable to your resource group where ACR exists.
-RegistryGroup="demo-cluster"
-
-# Login to the Registry
-Registry=$(az acr list -g $RegistryGroup --query [].name -otsv)
-az acr login -g $RegistryGroup -n $Registry
-```
 
 __Build the application__
 
+> Follow this process to build using Azure. (ie: cloudshell)
+
 ```bash
-# Retrieve the Registry Server FQDN
+# Move to the directory where the source code exists
+cd src/azure-vote
+
+# Set the variable to your resource group where ACR exists.
+ResourceGroup="demo-cluster"
+
+# Retrieve the Registry Name
+Registry=$(az acr list -g $ResourceGroup --query [].name -otsv)
+
+# Build and push the Image
+az acr build --registry $Registry --image azure-vote-front .
+```
+
+__Build the application using Docker__
+
+> Follow this process to build using docker.
+
+```bash
+# Set the variable to your resource group where ACR exists.
+ResourceGroup="demo-cluster"
+
+# Login to the Registry
+Registry=$(az acr list -g $ResourceGroup --query [].name -otsv)
+az acr login -g $ResourceGroup -n $Registry
+
+# Get the FQDN to be used
 RegistryServer=$(az acr show -g $RegistryGroup -n $Registry --query loginServer -otsv)
 
 # Create a Compose File for the App
@@ -142,7 +159,7 @@ __Deploy the application__
 
 ```bash
 # Retrieve the Registry Server FQDN
-RegistryServer=$(az acr show -g $RegistryGroup -n $Registry --query loginServer -otsv)
+RegistryServer=$(az acr show -g $ResourceGroup -n $Registry --query loginServer -otsv)
 
 # Create a k8s manifest file for the App
 cat > deployment.yaml <<EOF
