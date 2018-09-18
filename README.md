@@ -71,14 +71,16 @@ export TF_VAR_client_secret=${ARM_CLIENT_SECRET}
 __Run Terraform init and plan.__
 
 ```bash
-# Run the following terraform commands.
-
+# Provision the infrastructure
 terraform init
 terraform plan
 terraform apply
+
+# Retrieve the config
 terraform output kube_config > ~/.kube/aksconfig
 export KUBECONFIG=~/.kube/aksconfig
 
+# Validate the cluster
 kubectl get nodes
 kubectl get pods --all-namespaces
 ```
