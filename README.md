@@ -73,16 +73,20 @@ __Run Terraform init and plan.__
 terraform init
 terraform plan
 terraform apply
+```
 
-# Retrieve the config
-terraform output kube_config > ~/.kube/aksconfig
-export KUBECONFIG=~/.kube/aksconfig
+__Pull the Configuration Credentials and Validate the Cluster.__
+
+```bash
+# or pull the credential context
+ResourceGroup="demo-cluster"
+Cluster=$(az aks list -g $ResourceGroup --query [].name -otsv)
+az aks get-credentials -n $Cluster -g $ResourceGroup 
 
 # Validate the cluster
 kubectl get nodes
 kubectl get pods --all-namespaces
 ```
-
 
 
 ## Deploy a Sample Application to the Cluster
