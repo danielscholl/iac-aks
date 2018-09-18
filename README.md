@@ -36,12 +36,10 @@ Generate Azure client id and secret.
 
 ```bash
 # Create a Service Principal
-
 Subscription=$(az account show --query id -otsv)
-az ad sp create-for-rbac --name "Terraform-Principal" --role="Contributor" --scopes="/subscriptions/$Subscription"
+az ad sp create-for-rbac --name "Terraform-Principal" --role="Owner" --scopes="/subscriptions/$Subscription"
 
 # Expected Result
-
 {
   "appId": "00000000-0000-0000-0000-000000000000",
   "displayName": "Terraform-Principal",
