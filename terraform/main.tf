@@ -1,60 +1,13 @@
 /*
 .Synopsis
-   Terraform Control Script
+   Terraform Main Control
 .DESCRIPTION
-   This module is responsible for orechestrating the resources
-   and modules needed for a sample AKS Cluster with Advanced Networking
-   and Advanced Networking enabled.
+   This file holds the main control and resoures for the Terraform AKS Module.
 */
 
 provider "azurerm" {
   version = "=1.10.0"
 }
-
-
-#########################################################
-# VARIABLES
-#########################################################
-
-variable "owner_initials" {
-  type        = "string"
-  description = "Resource Owner Initials."
-}
-
-variable "location" {
-  type        = "string"
-  description = "Location for the resource groups."
-  default     = "eastus"
-}
-
-variable "sp_least_privilidge" {
-  description = "[Alpha] This feature creates a limited role for use by the K8s Service principal which limits access to only those resources needed for k8s operation"
-  default     = false
-}
-
-variable "kubetnetes_version" {
-  type        = "string"
-  description = "The k8s version to deploy eg: '1.8.5', '1.10.5' etc"
-  default     = "1.10.5"
-}
-
-variable "vm_size" {
-  description = "The VM_SKU to use for the agents in the cluster"
-  default     = "Standard_DS2_v2"
-}
-
-variable "node_count" {
-  description = "The number of agents nodes to provision in the cluster"
-  default     = "1"
-}
-
-variable "linux_admin_username" {
-  type        = "string"
-  description = "User name for authentication to the Kubernetes linux agent virtual machines in the cluster."
-  default     = "terraform"
-}
-
-
 
 locals {
   unique          = "${random_integer.unique.result}"
@@ -412,34 +365,4 @@ resource "azurerm_kubernetes_cluster" "aks" {
     "azurerm_azuread_service_principal.ad_sp",
     "azurerm_role_assignment.aks_network",
   ]
-}
-
-
-
-#########################################################
-# OUTPUT
-#########################################################
-
-# output "kube_config" {
-#   value = "${azurerm_kubernetes_cluster.aks.kube_config_raw}"
-# }
-# output "host" {
-#   value = "${azurerm_kubernetes_cluster.aks.kube_config.0.host}"
-# }
-output "configure" {
-  value = <<CONFIGURE
-
----------------------------------------------------------
-Run the following commands to configure kubernetes client:
-
-$ ResourceGroup="${local.rg}"
-$ Cluster=$(az aks list -g $ResourceGroup --query [].name -otsv)
-$ az aks get-credentials -n $Cluster -g $ResourceGroup 
-
-Test configuration using kubectl
-
-
-$ kubectl get nodes
-$ kubectl get pods --all-namespaces
-CONFIGURE
 }
