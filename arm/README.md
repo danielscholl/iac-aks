@@ -13,12 +13,32 @@ Infrastructure as Code using ARM - Azure Kubernetes Clusters
 az group create --location eastus2 --name my-iac
 ```
 
-2. Modify Template Parameters as desired
+2. Create a Service Principal
+
+```bash
+PrincipalName="my-Principal"
+
+PrincipalSecret=$(az ad sp create-for-rbac \
+                  --name $PrincipalName \
+                  --skip-assignment \
+                  --query password -otsv)
+
+PrincipalId=$(az ad sp list \
+              --display-name $PrincipalName \
+              --query [].appId -otsv)
+```
+
+2. Modify Template Parameters as necessary
 
 3. Deploy Template to Resource Group
 
 ```bash
-az group deployment create --template-file azuredeploy.json --parameters azuredeploy.parameters.json --resource-group my-iac
+az group deployment create --template-file azuredeploy.json --parameters azuredeploy.parameters.json \
+    --resource-group my-iac \
+    --parameters servicePrincipalClientId=$PrincipalId \
+    --parameters servicePrincipalClientSecret=$PrincipalSecret \
+    --parameters sshRSAPublicKey=$SSHKey
+
 ```
 
 # Build and Test 

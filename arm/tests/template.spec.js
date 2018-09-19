@@ -4,7 +4,7 @@ const should = require('should');
 const template = require('../azuredeploy.json');
 const parameters = require('../azuredeploy.parameters.json');
 
-describe('ccit-iac-network', () => {
+describe('iac-aks', () => {
   context('template file', () => {
     it('should exist', () => should.exist(template));
 
@@ -20,20 +20,30 @@ describe('ccit-iac-network', () => {
     context('defines the expected parameters', () => {
       const actual = Object.keys(template.parameters);
 
-      it('should have 4 parameters', () => actual.length.should.be.exactly(4));
+      it('should have 12 parameters', () => actual.length.should.be.exactly(12));
       it('should have a prefix', () => actual.should.containEql('prefix'));
       it('should have a vnetPrefix', () => actual.should.containEql('vnetPrefix'));
       it('should have a subnet1Prefix', () => actual.should.containEql('subnet1Prefix'));
       it('should have a subnet2Prefix', () => actual.should.containEql('subnet2Prefix'));
+      it('should have a dnsPrefix', () => actual.should.containEql('dnsPrefix'));
+      it('should have a agentCount', () => actual.should.containEql('agentCount'));
+      it('should have a agentVMSize', () => actual.should.containEql('agentVMSize'));
+      it('should have a linuxAdminUsername', () => actual.should.containEql('linuxAdminUsername'));
+      it('should have a sshRSAPublicKey', () => actual.should.containEql('sshRSAPublicKey'));
+      it('should have a servicePrincipalClientId', () => actual.should.containEql('servicePrincipalClientId'));
+      it('should have a servicePrincipalClientSecret', () => actual.should.containEql('servicePrincipalClientSecret'));
+      it('should have a kubernetesVersion', () => actual.should.containEql('kubernetesVersion'));
     });
 
     context('creates the expected resources', () => {
       const actual = template.resources.map(resource => resource.type);
       const securityGroups = actual.filter(resource => resource === 'Microsoft.Network/networkSecurityGroups');
 
-      it('should have 3 resources', () => actual.length.should.be.exactly(3));
+      it('should have 3 resources', () => actual.length.should.be.exactly(5));
       it('should create Microsoft.Network/virtualNetworks', () => actual.should.containEql('Microsoft.Network/virtualNetworks'));
       it('should create 2 Microsoft.Network/networkSecurityGroups', () => securityGroups.length.should.be.exactly(2));
+      it('should create Microsoft.ContainerRegistry/registries', () => actual.should.containEql('Microsoft.ContainerRegistry/registries'));
+      it('should create Microsoft.ContainerService/managedClusters', () => actual.should.containEql('Microsoft.ContainerService/managedClusters'));
     });
 
     context('vnet has expected properties', () => {
@@ -63,6 +73,13 @@ describe('ccit-iac-network', () => {
       it('should define securityGroup', () => should.exist(template.outputs.securityGroups));
       it('should define nsg1 id', () => should.exist(template.outputs.securityGroups.value.nsg1Id));
       it('should define nsg2 id', () => should.exist(template.outputs.securityGroups.value.nsg2Id));
+
+      it('should define containerRegistry', () => should.exist(template.outputs.containerRegistry));
+      it('should define registry id', () => should.exist(template.outputs.containerRegistry.value.id));
+      it('should define registry name', () => should.exist(template.outputs.containerRegistry.value.name));
+
+      it('should define controlPlane', () => should.exist(template.outputs.controlPlane));
+      it('should define controlPlan FQDN', () => should.exist(template.outputs.controlPlane.value.fqdn));
     });
   });
 

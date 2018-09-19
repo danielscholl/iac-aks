@@ -7,7 +7,7 @@
       "metadata": {
         "description": "Small unique string."
       },
-      "defaultValue": "my"
+      "defaultValue": "arm"
     },
     "vnetPrefix": {
       "type": "string",
@@ -19,19 +19,81 @@
     "subnet1Prefix": {
       "type": "string",
       "metadata": {
-        "description": "Subnet 1 Address Prefix CIDR"
+        "description": "ContainerTier Address Prefix CIDR"
       },
       "defaultValue": "10.0.0.0/20"
     },
     "subnet2Prefix": {
       "type": "string",
       "metadata": {
-        "description": "Subnet 2 Address Prefix CIDR"
+        "description": "BackendTier Address Prefix CIDR"
       },
       "defaultValue": "10.0.16.0/24"
+    },
+    "dnsPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Optional DNS prefix to use with hosted Kubernetes API server FQDN."
+      }
+    },
+    "agentCount": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "The number of nodes for the cluster."
+      },
+      "minValue": 1,
+      "maxValue": 50
+    },
+    "agentVMSize": {
+      "type": "string",
+      "metadata": {
+        "description": "The size of the Virtual Machine."
+      },
+      "defaultValue": "Standard_DS2_v2"
+    },
+    "linuxAdminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "User name for the Linux Virtual Machines."
+      },
+      "defaultValue": "azureuser"
+    },
+    "sshRSAPublicKey": {
+      "type": "string",
+      "metadata": {
+        "description": "Configure all linux machines with the SSH RSA public key string. Your key should include three parts, for example 'ssh-rsa AAAAB...snip...UcyupgH azureuser@linuxvm'"
+      }
+    },
+    "servicePrincipalClientId": {
+      "metadata": {
+        "description": "Client ID (used by cloudprovider)"
+      },
+      "type": "securestring"
+    },
+    "servicePrincipalClientSecret": {
+      "metadata": {
+        "description": "The Service Principal Client Secret."
+      },
+      "type": "securestring"
+    },
+    "kubernetesVersion": {
+      "type": "string",
+      "defaultValue": "1.9.6",
+      "allowedValues": [
+        "1.7.7",
+        "1.8.1",
+        "1.9.1",
+        "1.9.6"
+      ],
+      "metadata": {
+        "description": "The version of Kubernetes."
+      }
     }
   },
   "variables": {
+    "cleanUnique": "[toLower(replace(parameters('prefix'),'-', ''))]",
+    "registryName": "[concat(variables('cleanUnique'), uniqueString(resourceGroup().id))]",
     "VNetName": "[concat(parameters('prefix'), '-vnet')]",
     "VNetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('VNetName'))]",
     "Subnet1Name": "containerTier",
@@ -51,8 +113,8 @@
       "apiVersion": "2015-05-01-preview",
       "location": "[resourceGroup().location]",
       "tags": {
-        "environment" : "dev",
-        "contact" : "[parameters('ownerInitials')]"
+        "environment": "dev",
+        "contact": "[parameters('ownerInitials')]"
       },
       "properties": {
         "securityRules": [
@@ -80,8 +142,8 @@
       "apiVersion": "2015-05-01-preview",
       "location": "[resourceGroup().location]",
       "tags": {
-        "environment" : "dev",
-        "contact" : "[parameters('ownerInitials')]"
+        "environment": "dev",
+        "contact": "[parameters('ownerInitials')]"
       },
       "properties": {
         "securityRules": [
@@ -155,8 +217,8 @@
         "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsg2Name'))]"
       ],
       "tags": {
-        "environment" : "dev",
-        "contact" : "[parameters('ownerInitials')]"
+        "environment": "dev",
+        "contact": "[parameters('ownerInitials')]"
       },
       "properties": {
         "addressSpace": {
@@ -185,6 +247,64 @@
           }
         ]
       }
+    },
+    {
+      "name": "[variables('registryName')]",
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "comments": "Container registry for storing docker images",
+      "dependsOn": [],
+      "tags": {
+        "environment": "dev",
+        "contact": "[parameters('ownerInitials')]"
+      },
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard"
+      },
+      "properties": {
+        "adminUserEnabled": false
+      }
+    },
+    {
+      "comments": "## Managed Kubernetes ##",
+      "name": "[parameters('resourceName')]",
+      "type": "Microsoft.ContainerService/managedClusters",
+      "apiVersion": "2018-03-31",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "environment": "dev",
+        "contact": "[parameters('ownerInitials')]"
+      },
+      "properties": {
+        "kubernetesVersion": "[parameters('kubernetesVersion')]",
+        "dnsPrefix": "[parameters('dnsPrefix')]",
+        "agentPoolProfiles": [
+          {
+            "name": "agentpool",
+            "osDiskSizeGB": 30,
+            "count": "[parameters('agentCount')]",
+            "vmSize": "[parameters('agentVMSize')]",
+            "osType": "Linux",
+            "storageProfile": "ManagedDisks"
+          }
+        ],
+        "linuxProfile": {
+          "adminUsername": "[parameters('linuxAdminUsername')]",
+          "ssh": {
+            "publicKeys": [
+              {
+                "keyData": "[parameters('sshRSAPublicKey')]"
+              }
+            ]
+          }
+        },
+        "servicePrincipalProfile": {
+          "clientId": "[parameters('servicePrincipalClientId')]",
+          "secret": "[parameters('servicePrincipalClientSecret')]"
+        }
+      }
     }
   ],
   "outputs": {
@@ -207,6 +327,19 @@
       "value": {
         "nsg1Id": "[variables('nsg1Id')]",
         "nsg2Id": "[variables('nsg2Id')]"
+      }
+    },
+    "containerRegistry": {
+      "type": "object",
+      "value": {
+        "id": "[reference(resourceId('Microsoft.ContainerRegistry/registries',variables('registryName')),'2016-06-27-preview').loginServer]",
+        "name": "[variables('registryName')]"
+      }
+    },
+    "controlPlane": {
+      "type": "object",
+      "value": {
+        "fqdn": "[reference(parameters('resourceName')).fqdn]"
       }
     }
   }

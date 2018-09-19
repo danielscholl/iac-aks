@@ -28,7 +28,10 @@ __Deploy a Sample Application to the Cluster__
 1. Build the Docker Images and Deploy using the Azure CLI
 
 ```bash
-ResourceGroup="demo-cluster"
+## Ensure kubectl is using the appropriate configuration!!
+#--------------------------------------------------------
+
+ResourceGroup="<your_resource_group>"
 deploy.sh $ResourceGroup
 
 # Watch to see the app come alive
@@ -40,8 +43,11 @@ kubectl get service azure-vote-front --watch
 _Build the application_
 
 ```bash
+## Ensure kubectl is using the appropriate configuration!!
+#--------------------------------------------------------
+
 # Set the variable to your resource group where ACR exists.
-ResourceGroup="demo-cluster"
+ResourceGroup="<your_resource_group>"
 
 # Login to the Registry
 Registry=$(az acr list -g $ResourceGroup --query [].name -otsv)
