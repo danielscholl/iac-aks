@@ -2,6 +2,8 @@
 
 This repository is built for the purpose of understanding how to deploy a Kubernetes Clusters in different manners.
 
+_[Issue Tracking](https://github.com/danielscholl/azure-terraform-aks/blob/master/Issues.md)_
+
 __Clone the Github repository__
 
 ```bash

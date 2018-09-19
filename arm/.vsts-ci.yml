@@ -1,0 +1,56 @@
+resources:
+- repo: self
+  clean: true
+queue:
+  name: Hosted Linux Preview
+  demands: npm
+
+steps:
+- task: NodeTool@0
+  displayName: 'Use Node 8.x'
+  inputs:
+    versionSpec: 8.x
+
+- task: Npm@1
+  displayName: 'npm install'
+  inputs:
+    verbose: false
+
+- task: AzureCLI@1
+  displayName: 'npm test'
+  inputs:
+    azureSubscription: 'Consumption'
+    scriptLocation: inlineScript
+    inlineScript: |
+     mkdir .test-output
+     npm run test-reporter
+    failOnStandardError: true
+
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results results.xml'
+  inputs:
+    testResultsFiles: results.xml
+    searchFolder: '$(System.DefaultWorkingDirectory)/.test-output'
+    testRunTitle: 'Unit Tests'
+
+- task: tsuyoshiushio.shell-exec.shellexec.shellexec@0
+  displayName: 'Create Distribution'
+  inputs:
+    code: |
+     mkdir -p dist/templates
+     cp azuredeploy.json dist/templates
+     cp azuredeploy.parameters.json dist/templates
+
+- task: ArchiveFiles@2
+  displayName: 'Archive Files'
+  inputs:
+    rootFolderOrFile: '$(Build.Repository.LocalPath)/dist'
+
+- task: CopyFiles@2
+  displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+  inputs:
+    Contents: '**\*.zip'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
