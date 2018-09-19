@@ -14,6 +14,7 @@ steps:
 - task: Npm@1
   displayName: 'npm install'
   inputs:
+    workingDir: arm
     verbose: false
 
 - task: AzureCLI@1
@@ -22,6 +23,7 @@ steps:
     azureSubscription: 'MSDN-1'
     scriptLocation: inlineScript
     inlineScript: |
+     cd arm
      mkdir .test-output
      npm run test-reporter
     failOnStandardError: true
@@ -30,13 +32,14 @@ steps:
   displayName: 'Publish Test Results results.xml'
   inputs:
     testResultsFiles: results.xml
-    searchFolder: '$(System.DefaultWorkingDirectory)/.test-output'
+    searchFolder: '$(System.DefaultWorkingDirectory)/arm/.test-output'
     testRunTitle: 'Unit Tests'
 
 - task: tsuyoshiushio.shell-exec.shellexec.shellexec@0
   displayName: 'Create Distribution'
   inputs:
     code: |
+     cd arm
      mkdir -p dist/templates
      cp azuredeploy.json dist/templates
      cp azuredeploy.parameters.json dist/templates
@@ -44,7 +47,7 @@ steps:
 - task: ArchiveFiles@2
   displayName: 'Archive Files'
   inputs:
-    rootFolderOrFile: '$(Build.Repository.LocalPath)/dist'
+    rootFolderOrFile: '$(Build.Repository.LocalPath)/arm/dist'
 
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'

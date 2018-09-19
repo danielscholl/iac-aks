@@ -3,10 +3,12 @@ Infrastructure as Code using CLI - Azure Kubernetes Clusters
 
 ## Getting Started
 
-1. Create a Resource Group
+> _These instructions assume bash._
+
+1. __Create a Resource Group__
 
 ```bash
-Prefix="demo"
+Prefix="cli"
 ResourceGroup="$Prefix-cluster"
 Location="eastus"
 
@@ -19,7 +21,7 @@ az group create \
 Unique=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 3)
 ```
 
-2. Create a Service Principal
+2. __Create a Service Principal__
 
 ```bash
 PrincipalName="$Prefix-Principal"
@@ -34,7 +36,7 @@ PrincipalId=$(az ad sp list \
               --query [].appId -otsv)
 ```
 
-3. Create a Container Registry
+3. __Create a Container Registry__
 
 ```bash
 Registry="${Prefix}registry${Unique}"
