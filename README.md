@@ -10,16 +10,16 @@ git clone https://github.com/danielscholl/azure-terraform-aks.git
 
 __Deploy Infrastructure__
 
-1. [Azure CLI](https://github.com/danielscholl/azure-terraform-aks/blob/master/cli/README.md)
+1. __[Azure CLI](https://github.com/danielscholl/azure-terraform-aks/blob/master/cli/README.md)__
 
-1. [Terraform Sample](https://github.com/danielscholl/azure-terraform-aks/blob/master/terraform/README.md)
+1. __[Terraform Sample](https://github.com/danielscholl/azure-terraform-aks/blob/master/terraform/README.md)__
 
-1. [Resource Manager](https://github.com/danielscholl/azure-terraform-aks/blob/master/arm/README.md)
+1. __[Resource Manager](https://github.com/danielscholl/azure-terraform-aks/blob/master/arm/README.md)__
 
-1. [Ansible](https://github.com/danielscholl/azure-terraform-aks/blob/master/ansible/README.md)
+1. __[Ansible](https://github.com/danielscholl/azure-terraform-aks/blob/master/ansible/README.md)__
 
 
-> Read a [comparison](https://github.com/danielscholl/azure-terraform-aks/blob/master/Terraform-CLI.md) on CLI vs Terraform.
+> [Compare](https://github.com/danielscholl/azure-terraform-aks/blob/master/Terraform-CLI.md) CLI vs Terraform.
 
 __Deploy a Sample Application to the Cluster__
 
