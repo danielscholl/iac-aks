@@ -2,12 +2,19 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "prefix": {
+    "initials": {
       "type": "string",
       "metadata": {
         "description": "Small unique string."
+      }
+    },
+    "random": {
+      "type": "string",
+      "metadata": {
+        "description": "3 Digit Random Integer"
       },
-      "defaultValue": "arm"
+      "minValue": 100,
+      "maxValue": 999
     },
     "vnetPrefix": {
       "type": "string",
@@ -85,18 +92,21 @@
     }
   },
   "variables": {
-    "cleanUnique": "[toLower(replace(parameters('prefix'),'-', ''))]",
-    "registryName": "[concat(variables('cleanUnique'), uniqueString(resourceGroup().id))]",
-    "clusterName": "[concat(variables('cleanUnique'), uniqueString(resourceGroup().id))]",
-    "VNetName": "[concat(parameters('prefix'), '-vnet')]",
+    "registryName": "[concat('cliregistry', parameters('random')]",
+    "clusterName": "[concat('aks-', parameters('random')]",
+    "linuxProfile": {
+      "adminUsername": "[parameters('linuxAdminUsername')]",
+      "sshRsaPublicKey": "[parameters('sshRSAPublicKey')]"
+    },
+    "VNetName": "[concat(parameters('initials'), '-vnet')]",
     "VNetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('VNetName'))]",
     "Subnet1Name": "containerTier",
     "SubNet1Id": "[concat(variables('VNetId'), '/subnets/', variables('Subnet1Name'))]",
     "Subnet2Name": "backendTier",
     "SubNet2Id": "[concat(variables('VNetId'), '/subnets/', variables('Subnet2Name'))]",
-    "Nsg1Name": "[concat(variables('Subnet1Name'), '-nsg')]",
+    "Nsg1Name": "[concat(variables('VNetName'), variables('Subnet1Name'), '-nsg')]",
     "Nsg1Id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('Nsg1Name'))]",
-    "Nsg2Name": "[concat(variables('Subnet2Name'), '-nsg')]",
+    "Nsg2Name": "[concat(variables('VNetName'), variables('Subnet2Name'), '-nsg')]",
     "Nsg2Id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('Nsg2Name'))]"
   },
   "resources": [
@@ -108,7 +118,7 @@
       "location": "[resourceGroup().location]",
       "tags": {
         "environment": "dev",
-        "contact": "[parameters('prefix')]"
+        "contact": "[parameters('initials')]"
       },
       "properties": {
         "securityRules": [
@@ -137,7 +147,7 @@
       "location": "[resourceGroup().location]",
       "tags": {
         "environment": "dev",
-        "contact": "[parameters('prefix')]"
+        "contact": "[parameters('initials')]"
       },
       "properties": {
         "securityRules": [
@@ -212,7 +222,7 @@
       ],
       "tags": {
         "environment": "dev",
-        "contact": "[parameters('prefix')]"
+        "contact": "[parameters('initials')]"
       },
       "properties": {
         "addressSpace": {
@@ -243,15 +253,15 @@
       }
     },
     {
+      "comments": "## Container Registry ##",
       "name": "[variables('registryName')]",
       "type": "Microsoft.ContainerRegistry/registries",
       "apiVersion": "2017-10-01",
       "location": "[resourceGroup().location]",
-      "comments": "Container registry for storing docker images",
       "dependsOn": [],
       "tags": {
         "environment": "dev",
-        "contact": "[parameters('prefix')]"
+        "contact": "[parameters('initials')]"
       },
       "sku": {
         "name": "Standard",
@@ -269,10 +279,11 @@
       "location": "[resourceGroup().location]",
       "tags": {
         "environment": "dev",
-        "contact": "[parameters('prefix')]"
+        "contact": "[parameters('initials')]"
       },
       "properties": {
         "kubernetesVersion": "[parameters('kubernetesVersion')]",
+        "enableRBAC": false,
         "dnsPrefix": "[variables('clusterName')]",
         "agentPoolProfiles": [
           {
@@ -285,11 +296,11 @@
           }
         ],
         "linuxProfile": {
-          "adminUsername": "[parameters('linuxAdminUsername')]",
+          "adminUsername": "[variables('linuxProfile').adminUsername]",
           "ssh": {
             "publicKeys": [
               {
-                "keyData": "[parameters('sshRSAPublicKey')]"
+                "keyData": "[variables('linuxProfile').sshRsaPublicKey]"
               }
             ]
           }

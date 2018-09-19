@@ -20,8 +20,9 @@ describe('iac-aks', () => {
     context('defines the expected parameters', () => {
       const actual = Object.keys(template.parameters);
 
-      it('should have 11 parameters', () => actual.length.should.be.exactly(11));
-      it('should have a prefix', () => actual.should.containEql('prefix'));
+      it('should have 12 parameters', () => actual.length.should.be.exactly(12));
+      it('should have a initials', () => actual.should.containEql('initials'));
+      it('should have a random', () => actual.should.containEql('random'));
       it('should have a vnetPrefix', () => actual.should.containEql('vnetPrefix'));
       it('should have a subnet1Prefix', () => actual.should.containEql('subnet1Prefix'));
       it('should have a subnet2Prefix', () => actual.should.containEql('subnet2Prefix'));
