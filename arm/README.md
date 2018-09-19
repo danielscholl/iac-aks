@@ -1,6 +1,9 @@
 # Introduction
 Infrastructure as Code using ARM - Azure Kubernetes Clusters
 
+[![Build Status](https://cloudcodeit.visualstudio.com/DemoStuff/_apis/build/status/danielscholl.iac-aks)](https://cloudcodeit.visualstudio.com/DemoStuff/_build/latest?definitionId=26)
+
+
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdanielscholl%2Fazure-terraform-aks%2Fmaster%2Farm%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
