@@ -19,7 +19,7 @@ steps:
 - task: AzureCLI@1
   displayName: 'npm test'
   inputs:
-    azureSubscription: 'Consumption'
+    azureSubscription: 'MSDN-1'
     scriptLocation: inlineScript
     inlineScript: |
      mkdir .test-output
