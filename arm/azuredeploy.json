@@ -30,12 +30,6 @@
       },
       "defaultValue": "10.0.16.0/24"
     },
-    "dnsPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "Optional DNS prefix to use with hosted Kubernetes API server FQDN."
-      }
-    },
     "agentCount": {
       "type": "int",
       "defaultValue": 1,
@@ -56,8 +50,7 @@
       "type": "string",
       "metadata": {
         "description": "User name for the Linux Virtual Machines."
-      },
-      "defaultValue": "azureuser"
+      }
     },
     "sshRSAPublicKey": {
       "type": "string",
@@ -94,6 +87,7 @@
   "variables": {
     "cleanUnique": "[toLower(replace(parameters('prefix'),'-', ''))]",
     "registryName": "[concat(variables('cleanUnique'), uniqueString(resourceGroup().id))]",
+    "clusterName": "[concat(variables('cleanUnique'), uniqueString(resourceGroup().id))]",
     "VNetName": "[concat(parameters('prefix'), '-vnet')]",
     "VNetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('VNetName'))]",
     "Subnet1Name": "containerTier",
@@ -269,7 +263,7 @@
     },
     {
       "comments": "## Managed Kubernetes ##",
-      "name": "[parameters('resourceName')]",
+      "name": "[variables('clusterName')]",
       "type": "Microsoft.ContainerService/managedClusters",
       "apiVersion": "2018-03-31",
       "location": "[resourceGroup().location]",
@@ -279,7 +273,7 @@
       },
       "properties": {
         "kubernetesVersion": "[parameters('kubernetesVersion')]",
-        "dnsPrefix": "[parameters('dnsPrefix')]",
+        "dnsPrefix": "[variables('clusterName')]",
         "agentPoolProfiles": [
           {
             "name": "agentpool",
@@ -339,7 +333,7 @@
     "controlPlane": {
       "type": "object",
       "value": {
-        "fqdn": "[reference(parameters('resourceName')).fqdn]"
+        "fqdn": "[reference(variables('clusterName')).fqdn]"
       }
     }
   }
