@@ -114,7 +114,7 @@
       "location": "[resourceGroup().location]",
       "tags": {
         "environment": "dev",
-        "contact": "[parameters('ownerInitials')]"
+        "contact": "[parameters('prefix')]"
       },
       "properties": {
         "securityRules": [
@@ -143,7 +143,7 @@
       "location": "[resourceGroup().location]",
       "tags": {
         "environment": "dev",
-        "contact": "[parameters('ownerInitials')]"
+        "contact": "[parameters('prefix')]"
       },
       "properties": {
         "securityRules": [
@@ -218,7 +218,7 @@
       ],
       "tags": {
         "environment": "dev",
-        "contact": "[parameters('ownerInitials')]"
+        "contact": "[parameters('prefix')]"
       },
       "properties": {
         "addressSpace": {
@@ -257,7 +257,7 @@
       "dependsOn": [],
       "tags": {
         "environment": "dev",
-        "contact": "[parameters('ownerInitials')]"
+        "contact": "[parameters('prefix')]"
       },
       "sku": {
         "name": "Standard",
@@ -275,7 +275,7 @@
       "location": "[resourceGroup().location]",
       "tags": {
         "environment": "dev",
-        "contact": "[parameters('ownerInitials')]"
+        "contact": "[parameters('prefix')]"
       },
       "properties": {
         "kubernetesVersion": "[parameters('kubernetesVersion')]",

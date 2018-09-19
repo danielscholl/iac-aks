@@ -10,7 +10,7 @@ Infrastructure as Code using ARM - Azure Kubernetes Clusters
 1. Create a Resource Group
 
 ```bash
-az group create --location eastus2 --name my-iac
+az group create --location eastus2 --name arm-cluster
 ```
 
 2. Create a Service Principal
