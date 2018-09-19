@@ -1,0 +1,27 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "prefix": {
+        "value": "my"
+      },
+      "vnetPrefix": {
+        "value": "10.99.0.0/24"
+      },
+      "subnet1Prefix": {
+        "value": "10.99.0.0/25"
+      },
+      "subnet2Prefix": {
+        "value": "10.99.0.128/26"
+      },
+      "subnet3Prefix": {
+        "value": "10.99.0.192/28"
+      },
+      "subnet4Prefix": {
+        "value": "10.99.0.208/28"
+      },
+      "remoteAccessACL": {
+        "value": "Internet"
+      }
+    }
+  }
