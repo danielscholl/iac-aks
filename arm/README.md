@@ -8,51 +8,19 @@ Infrastructure as Code using ARM - Azure Kubernetes Clusters
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 
-# Getting Started
 
-1. Create private ssh keys
+## Getting Started
 
-```bash
-user=$(az account show --query user.name -otsv) && linuxUser=(${user//@/ })
-mkdir .ssh && cd .ssh
-ssh-keygen -t rsa -b 2048 -C $user -f id_rsa && cd ..
-```
+1. Run Install Script for ARM Process
 
-2. Create a Service Principal
+> Requires manually copying in the SSH Key that is created at this time.
 
 ```bash
-PrincipalName="$Initials-Principal"
-
-PrincipalSecret=$(az ad sp create-for-rbac \
-                  --name $PrincipalName \
-                  --skip-assignment \
-                  --query password -otsv)
-
-PrincipalId=$(az ad sp list \
-              --display-name $PrincipalName \
-              --query [].appId -otsv)
+# Initialize the Modules
+contact="<your_initials>"
+install.sh $contact
 ```
 
-3. Create a Resource Group
-
-```bash
-Initials="arm"
-az group create --location eastus --name $Initials-cluster
-```
-
-4. Deploy Template to Resource Group
-
-```bash
-random=$(shuf -i 100-999 -n 1)  ## ONLY RUN THIS ONE TIME
-
-az group deployment create --template-file azuredeploy.json  \
-    --resource-group $Initials-cluster \
-    --parameters azuredeploy.parameters.json \
-    --parameters servicePrincipalClientId=$PrincipalId \
-    --parameters servicePrincipalClientSecret=$PrincipalSecret \
-    --parameters linuxAdminUsername=$linuxUser
-
-```
 
 # Build and Test 
 
@@ -68,9 +36,6 @@ npm test
 2. Manually provision the infrastructure.
 
 ```bash
-# Create the required resource group
-npm run group
-
 # Provision the infrastructure
 npm run provision
 ```

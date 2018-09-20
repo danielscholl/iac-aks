@@ -1,7 +1,7 @@
 {
   "name": "iac-aks",
   "config": {
-    "prefix": "my"
+    "initials": "npm"
   },
   "version": "1.0.0",
   "description": "Test Cases for IAC Component",
@@ -10,8 +10,7 @@
     "test-template": "tap tests/template.spec.js  --reporter spec",
     "test-reporter": "tap tests/*.spec.js --reporter xunit --output-file .test-output/raw.txt > .test-output/results.xml",
     "start": "watch 'clear && npm run -s test-template' .",
-    "group": "az group create --location eastus --name $npm_package_config_prefix-iac",
-    "provision": "az group deployment create --template-file azuredeploy.json --parameters azuredeploy.parameters.json --resource-group $npm_package_config_prefix-iac"
+    "provision": "./install.sh $npm_package_config_initials"
   },
   "author": "Daniel Scholl",
   "license": "MIT",

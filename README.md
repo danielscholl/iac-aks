@@ -25,6 +25,22 @@ __Deploy Infrastructure__
 
 __Deploy a Sample Application to the Cluster__
 
+1. Ensure the proper AKS Credentials have been retrieved
+
+```bash
+ResourceGroup="<your_resource_group>"
+Cluster="<your_cluster>"
+# Pull the cluster admin context
+az aks get-credentials --name <your_cluster> \
+  --resource-group $ResourceGroup \
+  --admin
+
+# Validate the cluster
+kubectl get nodes
+kubectl get pods --all-namespaces
+
+```
+
 1. Build the Docker Images and Deploy using the Azure CLI
 
 ```bash
