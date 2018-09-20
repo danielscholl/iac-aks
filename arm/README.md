@@ -43,10 +43,11 @@ ssh-keygen -t rsa -b 2048 -C $user -f id_rsa && cd ..
 3. Deploy Template to Resource Group
 
 ```bash
+random=$(shuf -i 100-999 -n 1)  ## ONLY RUN THIS ONE TIME
+
 az group deployment create --template-file azuredeploy.json  \
     --resource-group $Initials-cluster \
     --parameters azuredeploy.parameters.json \
-    --parameters random=$(shuf -i 100-999 -n 1) --parameters initials=$Initials  \
     --parameters servicePrincipalClientId=$PrincipalId \
     --parameters servicePrincipalClientSecret=$PrincipalSecret \
     --parameters linuxAdminUsername=$linuxUser

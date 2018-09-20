@@ -92,7 +92,7 @@
     }
   },
   "variables": {
-    "registryName": "[concat('cliregistry', parameters('random'))]",
+    "registryName": "[concat(parameters('initials), 'registry', parameters('random'))]",
     "clusterName": "[concat('aks-', parameters('random'))]",
     "linuxProfile": {
       "adminUsername": "[parameters('linuxAdminUsername')]",
@@ -104,10 +104,14 @@
     "SubNet1Id": "[concat(variables('VNetId'), '/subnets/', variables('Subnet1Name'))]",
     "Subnet2Name": "backendTier",
     "SubNet2Id": "[concat(variables('VNetId'), '/subnets/', variables('Subnet2Name'))]",
-    "Nsg1Name": "[concat(variables('VNetName'), variables('Subnet1Name'), '-nsg')]",
+    "Nsg1Name": "[concat(variables('VNetName'), '-', variables('Subnet1Name'), '-nsg')]",
     "Nsg1Id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('Nsg1Name'))]",
-    "Nsg2Name": "[concat(variables('VNetName'), variables('Subnet2Name'), '-nsg')]",
-    "Nsg2Id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('Nsg2Name'))]"
+    "Nsg2Name": "[concat(variables('VNetName'), '-', variables('Subnet2Name'), '-nsg')]",
+    "Nsg2Id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('Nsg2Name'))]",
+    "NetworkPlugin": "azure",
+    "ServiceCidr": "10.3.0.0/24",
+    "DnsServiceIp": "10.3.0.10",
+    "DockerBridgeCidr": "172.17.0.1/16"
   },
   "resources": [
     {
@@ -281,6 +285,10 @@
         "environment": "dev",
         "contact": "[parameters('initials')]"
       },
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerRegistry/registries', variables('registryName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('VNetName'))]"
+      ],
       "properties": {
         "kubernetesVersion": "[parameters('kubernetesVersion')]",
         "enableRBAC": false,
@@ -292,7 +300,8 @@
             "count": "[parameters('agentCount')]",
             "vmSize": "[parameters('agentVMSize')]",
             "osType": "Linux",
-            "storageProfile": "ManagedDisks"
+            "storageProfile": "ManagedDisks",
+            "vnetSubnetID": "[variables('subnet1Id')]"
           }
         ],
         "linuxProfile": {
@@ -308,6 +317,14 @@
         "servicePrincipalProfile": {
           "clientId": "[parameters('servicePrincipalClientId')]",
           "secret": "[parameters('servicePrincipalClientSecret')]"
+        },
+        "networkConfiguration": {
+          "networkProfile": {
+            "networkPlugin": "[variables('NetworkPlugin')]",
+            "serviceCidr": "[variables('ServiceCidr')]",
+            "dnsServiceIp": "[variables('DnsServiceIp')]",
+            "dockerBridgeCidr": "[variables('DockerBridgeCidr')]"
+          }
         }
       }
     }
