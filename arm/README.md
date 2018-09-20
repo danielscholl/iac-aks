@@ -10,11 +10,12 @@ Infrastructure as Code using ARM - Azure Kubernetes Clusters
 
 # Getting Started
 
-1. Create a Resource Group
+1. Create private ssh keys
 
 ```bash
-Initials="arm"
-az group create --location eastus --name $Initials-cluster
+user=$(az account show --query user.name -otsv) && linuxUser=(${user//@/ })
+mkdir .ssh && cd .ssh
+ssh-keygen -t rsa -b 2048 -C $user -f id_rsa && cd ..
 ```
 
 2. Create a Service Principal
@@ -32,15 +33,14 @@ PrincipalId=$(az ad sp list \
               --query [].appId -otsv)
 ```
 
-3. Create private ssh keys
+3. Create a Resource Group
 
 ```bash
-user=$(az account show --query user.name -otsv) && linuxUser=(${user//@/ })
-mkdir .ssh && cd .ssh
-ssh-keygen -t rsa -b 2048 -C $user -f id_rsa && cd ..
+Initials="arm"
+az group create --location eastus --name $Initials-cluster
 ```
 
-3. Deploy Template to Resource Group
+4. Deploy Template to Resource Group
 
 ```bash
 random=$(shuf -i 100-999 -n 1)  ## ONLY RUN THIS ONE TIME

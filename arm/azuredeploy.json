@@ -92,7 +92,7 @@
     }
   },
   "variables": {
-    "registryName": "[concat(parameters('initials), 'registry', parameters('random'))]",
+    "registryName": "[concat(parameters('initials'), 'registry', parameters('random'))]",
     "clusterName": "[concat('aks-', parameters('random'))]",
     "linuxProfile": {
       "adminUsername": "[parameters('linuxAdminUsername')]",
