@@ -9,7 +9,7 @@
       }
     },
     "random": {
-      "type": "string",
+      "type": "int",
       "metadata": {
         "description": "3 Digit Random Integer"
       },
@@ -92,13 +92,13 @@
     }
   },
   "variables": {
-    "registryName": "[concat('cliregistry', parameters('random')]",
-    "clusterName": "[concat('aks-', parameters('random')]",
+    "registryName": "[concat('cliregistry', parameters('random'))]",
+    "clusterName": "[concat('aks-', parameters('random'))]",
     "linuxProfile": {
       "adminUsername": "[parameters('linuxAdminUsername')]",
       "sshRsaPublicKey": "[parameters('sshRSAPublicKey')]"
     },
-    "VNetName": "[concat(parameters('initials'), '-vnet')]",
+    "VNetName": "[concat(resourceGroup().name, '-vnet')]",
     "VNetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('VNetName'))]",
     "Subnet1Name": "containerTier",
     "SubNet1Id": "[concat(variables('VNetId'), '/subnets/', variables('Subnet1Name'))]",
